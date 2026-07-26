@@ -4,6 +4,12 @@
 
 Estimated ionospheric conductances with associated uncertainties are available [**here**](https://doi.org/10.5281/zenodo.15579301).
 
+## Project Memory
+
+For repository-specific operating guidance and technical continuity, start with
+[`AGENTS.md`](AGENTS.md) and
+[`log/icReader/START HERE - AI Onboarding.md`](log/icReader/START%20HERE%20-%20AI%20Onboarding.md).
+
 ## Dependencies
 
 - [`numpy`](https://numpy.org/)

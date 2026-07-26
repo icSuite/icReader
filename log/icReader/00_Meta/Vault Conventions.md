@@ -1,0 +1,42 @@
+# Vault Conventions
+
+Last reviewed: 2026-07-26
+
+## Authority
+
+Use this order when sources disagree:
+
+1. live code, Git state, tests, and inspected data products;
+2. `01_Project/Current State.md` and
+   `05_Handoff/Handoff - Latest.md`;
+3. decision and interface notes;
+4. dated historical notes.
+
+Use evidence labels where ambiguity matters:
+
+- **Confirmed**: supported by live evidence or a direct user statement;
+- **Hypothesis**: plausible but not adequately verified;
+- **Superseded**: retained because it explains history but no longer current.
+
+Always distinguish committed behavior from an uncommitted worktree.
+
+## Note ownership
+
+- `01_Project/Project Brief.md`: stable purpose, scope, interfaces, and code map.
+- `01_Project/Current State.md`: currently verified technical snapshot.
+- `02_Algorithm/`: durable reader and data-contract interpretation.
+- `03_Decisions/Decision Log.md`: durable decisions and rationale.
+- `04_Sessions/`: new dated historical evidence when a session merits it.
+- `05_Handoff/Handoff - Latest.md`: concise next actionable state, risks, and
+  verification entry points.
+
+Link to the note that owns a detail rather than repeating the same narrative.
+
+## Legacy material
+
+This vault predates the shared architecture. Its dated Markdown notes remain at
+the vault root to preserve history. Treat them as session evidence. Do not
+append later work to them or use their task lists as the current project plan.
+
+Local Obsidian workspace state under `.obsidian/` is ignored. Project memory
+remains version-controlled.
