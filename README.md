@@ -8,7 +8,7 @@ Estimated ionospheric conductances with associated uncertainties are available [
 
 For repository-specific operating guidance and technical continuity, start with
 [`AGENTS.md`](AGENTS.md) and
-[`log/icReader/START HERE - AI Onboarding.md`](log/icReader/START%20HERE%20-%20AI%20Onboarding.md).
+[`vault/START HERE - AI Onboarding.md`](vault/START%20HERE%20-%20AI%20Onboarding.md).
 
 ## Dependencies
 

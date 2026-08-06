@@ -1,7 +1,10 @@
 # Current State
 
 Last reviewed: 2026-07-26
-Committed snapshot: `main` at `7b6d293`, aligned with `origin/main`
+Repository snapshot: `main` at `e64206e`
+Latest source snapshot: `7b6d293` plus the preserved dirty source path
+Upstream state: one documentation commit ahead of `origin/main` before the
+synchronization-protocol edits
 Worktree at review: dirty in three pre-existing paths
 
 ## Current position

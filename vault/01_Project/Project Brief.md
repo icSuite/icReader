@@ -38,7 +38,7 @@ support status is not currently documented.
 - `example_data/spline/`: tracked spline NetCDF examples.
 - `scripts/`: manual loading, comparison, and plotting workflows; these write
   figures and are not automated tests.
-- `log/icReader/`: project memory and historical spline-development notes.
+- `vault/`: project memory and historical spline-development notes.
 
 ## Dependencies
 

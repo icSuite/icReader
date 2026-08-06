@@ -71,7 +71,7 @@ class ConductanceImage:
             # Load main data variables
             for attr in [
                 "wic_avg", "wic_std", "s12_avg", "s12_std", "s13_avg",
-                "s13_std", "E0", "dE0", "Fe", "dFe", "R", "dR",
+                "s13_std", "E0", "dE0", "Fe", "dFe", "varE0Fe", "R", "dR",
                 "P", "H", "dP", "dH", "w", "ssalon"
             ]:
                 setattr(self, attr, load_var(attr))
@@ -89,6 +89,25 @@ class ConductanceImage:
                 self.time = np.array(
                     [ref + timedelta(seconds=int(s)) for s in nc.variables["time"][:]]
                 )
+    
+            self.energy_method = nc.electron_energy_method
+            if self.energy_method == "zhang_paxton":
+                # Load Kp arrays safely mapping uppercase NC vars to lowercase object attributes
+                for attr in ["Kp", "Kp_lookup", "Kp_interval_start"]:
+                    if attr in nc.variables:
+                        setattr(self, attr, load_var(attr))
+    
+            # Load sensor viewing geometry and correction attributes
+            for sensor in ["wic", "s12", "s13"]:
+                for suffix in ["sza", "dza", "los_factor"]:
+                    var_name = f"{sensor}_{suffix}"
+                    if var_name in nc.variables:
+                        setattr(self, var_name, load_var(var_name))
+                
+                for suffix in ["los_correction", "image_correction"]:
+                    attr_name = f"{sensor}_{suffix}"
+                    if hasattr(nc, attr_name):
+                        setattr(self, attr_name, getattr(nc, attr_name))
     
             # GRID GROUP
             grid_grp = nc.groups["grid"]

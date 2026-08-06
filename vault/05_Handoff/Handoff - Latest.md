@@ -1,7 +1,8 @@
 # Handoff - Latest
 
 Last updated: 2026-07-26
-Committed snapshot: `main` at `7b6d293`
+Repository snapshot: `main` at `e64206e`
+Latest source snapshot: `7b6d293` plus the preserved dirty source path
 
 ## Project state
 
@@ -18,6 +19,9 @@ generated metadata, cache, example products, or downstream behavior.
 At the start of the 2026-07-26 vault migration:
 
 - committed `main` was aligned with `origin/main` at `7b6d293`;
+- the documentation-only vault migration was committed locally at `e64206e`,
+  leaving `main` one commit ahead of `origin/main` before the synchronization
+  protocol was added;
 - the worktree already contained changes in `icreader/splineimage.py`,
   `icreader/__pycache__/splineimage.cpython-310.pyc`, and
   `icreader.egg-info/SOURCES.txt`;
@@ -53,6 +57,14 @@ orientation, not authority.
 - No functional reader, schema, or downstream-compatibility test was run
   during the vault migration.
 
+## Portfolio impact
+
+- Central update needed: No
+- Changes: None
+- Sync summary: `icReader` remains completed for now with no recorded deadline.
+  The next portfolio decision remains the trigger and compatibility scope for
+  a future revisit.
+
 ## Entry points
 
 - `README.md`
@@ -65,6 +77,6 @@ orientation, not authority.
 
 ## Historical evidence
 
-The dated notes at the `log/icReader/` root are preserved as legacy session
+The dated notes at the `vault/` root are preserved as legacy session
 history. Read them only when investigating a specific earlier spline decision,
 configuration, or result.

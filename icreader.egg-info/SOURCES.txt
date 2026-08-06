@@ -1,7 +1,10 @@
 LICENSE
+README.md
 pyproject.toml
+icreader/SplineFactorImage.py
 icreader/__init__.py
 icreader/conductanceimage.py
+icreader/splineimage.py
 icreader.egg-info/PKG-INFO
 icreader.egg-info/SOURCES.txt
 icreader.egg-info/dependency_links.txt

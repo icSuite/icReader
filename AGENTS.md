@@ -22,14 +22,14 @@ uncommitted reader changes that are not part of committed HEAD.
 
 ## Project memory
 
-This repository preserves its established Obsidian vault at `log/icReader/`.
+Project memory is stored in the repository-root `vault/`.
 Before substantive work, read:
 
-1. `log/icReader/01_Project/Current State.md`
-2. `log/icReader/05_Handoff/Handoff - Latest.md`
-3. `log/icReader/01_Project/Project Brief.md`
+1. `vault/01_Project/Current State.md`
+2. `vault/05_Handoff/Handoff - Latest.md`
+3. `vault/01_Project/Project Brief.md`
 
-Read `log/icReader/02_Algorithm/Reader Interfaces and Data Contract.md` when
+Read `vault/02_Algorithm/Reader Interfaces and Data Contract.md` when
 changing product compatibility or public reader behavior. Treat older dated
 notes at the vault root as historical evidence, not current instructions.
 
@@ -59,6 +59,31 @@ live notes when the task changes project understanding.
 - Treat tracked example files as fixtures requiring provenance, not as proof
   that every published product remains compatible.
 
+## Scientific coding style
+
+- Write for a small research group. The expected reader is a student or
+  scientist who should be able to follow the calculation from top to bottom.
+- Use nearby code as the stylistic baseline, not as a ceiling. Do not copy weak
+  patterns blindly: identify scientific, numerical, or code choices that could
+  be improved, explain the tradeoff, and propose a clearer or safer alternative.
+- Adopt improvements when they materially improve correctness,
+  reproducibility, clarity, or demonstrated performance. Do not add complexity
+  merely because it is conventional in large production systems.
+- Let complexity follow the science, numerical method, or actual reuse
+  requirements. Prefer direct functions, NumPy arrays, ordinary loops and
+  dictionaries, and keep the main calculation visible in execution order.
+- Unless current requirements justify them, avoid dataclasses, manager or
+  factory classes, generic schemas, version and compatibility frameworks,
+  checkpoint/resume machinery, and speculative extension points.
+- Retain scientific rigor: make units, coordinates, assumptions, provenance,
+  and uncertainty explicit, and add focused tests or reference comparisons for
+  consequential calculations.
+- Scale packaging, validation, documentation, and abstractions to the code's
+  real reuse. A reusable package may justify more structure, but that structure
+  should solve a current, explained need.
+- If a nominally small feature grows beyond roughly 200 lines or more than two
+  new source files, pause and explain why before continuing.
+
 ## Verification
 
 No automated test suite or CI workflow was present at the 2026-07-26 review.
@@ -82,15 +107,28 @@ A future functional smoke test should load one tracked conductance file and one
 spline file without writing figures or bytecode. Define that check only after
 the dependency environment and dirty worktree have been reconciled.
 
-## Memory closeout
+## Automatic memory checkpoints
 
-After a meaningful project session:
+Project-memory maintenance is a default responsibility. Do not wait for the
+user to request a vault update or announce that a session is ending.
 
-1. create `log/icReader/04_Sessions/YYYY-MM-DD.md` only when historical detail
+Checkpoint after a verified fix or result, a durable interface or data-contract
+decision, a changed blocker or next action, and any milestone that would
+otherwise leave important understanding only in the conversation.
+
+At a meaningful checkpoint:
+
+1. create `vault/04_Sessions/YYYY-MM-DD.md` only when historical detail
    is worth preserving;
 2. rewrite `Current State.md` when verified project state changed;
 3. append only durable choices to the decision log;
 4. replace obsolete content in `Handoff - Latest.md`;
-5. update the interface note only when the supported data contract changed.
+5. update the interface note only when the supported data contract changed;
+6. refresh the handoff's `Portfolio impact` section, using `Central update
+   needed: No` when no portfolio-level information changed.
 
-Never append new work to an older dated note.
+Do not write raw logs, transient speculation, or unchanged state into the
+vault. An explicit read-only or no-file-changes request disables automatic
+memory writes for that task. Never append new work to an older dated note.
+Do not edit the central second brain directly; communicate portfolio changes
+through the latest handoff.

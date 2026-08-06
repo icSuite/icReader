@@ -166,6 +166,19 @@ class SplineImage:
         
         self._lon = lon
         self._lat = lat
+    
+    def get_geo_grids(self):
+        glats = []
+        glons = []
+        for dt in self.time_:
+            self.set_time(dt)
+            mlt = self.grid.lon/15%24
+            mlon = self.apex.mlt2mlon(mlt, dt)
+            mlat = self.grid.lat
+            glat, glon, _ = self.apex.apex2geo(mlat, mlon, 110)
+            glats.append(glat)
+            glons.append(glon)
+        return glats, glons
 
     def convert_space(self, lat, lon, h=110):
         # Convert from geo to apex
