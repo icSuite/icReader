@@ -1,6 +1,24 @@
 # Decision Log
 
-Last reviewed: 2026-07-26
+Last reviewed: 2026-08-11
+
+## 2026-08-11 — Dispatch modular products from explicit NetCDF metadata
+
+**Decision:** Use `icreader.load(filename)` with required root attributes
+`product_type` and `schema_version`. Do not infer product type from filenames
+or support old modular files through a fallback.
+
+**Rationale:** The modular branch will regenerate the data. An explicit file
+contract is simpler and avoids silent misclassification.
+
+## 2026-08-11 — Implement only the stable Product-1 reader
+
+**Decision:** Fully support `binned_fuv` now. Recognize `precipitation` and
+`conductance`, but raise `NotImplementedError` until those `icBuilder` products
+are complete.
+
+**Rationale:** This keeps the public boundary visible without encoding schemas
+that are still being designed.
 
 ## 2026-07-26 — Treat the project as complete for now
 
