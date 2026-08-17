@@ -38,8 +38,11 @@ def write_binned_product(filename):
         nc.sensor = "SI12"
         nc.image_correction = "raw"
         nc.los_correction = np.int8(1)
+        nc.binning_method = "footprint"
 
-        for name in ("mu", "sigma", "w", "sza", "dza", "los_factor"):
+        for name in (
+            "mu", "sigma", "w", "sza", "dza", "los_factor", "coverage"
+        ):
             variable = nc.createVariable(name, "f4", ("time", "dim1", "dim2"))
             variable[:] = np.arange(np.prod(shape)).reshape(shape)
 
@@ -242,11 +245,16 @@ def test_load_binned_product(tmp_path):
     assert image.sensor == "SI12"
     assert image.correction == "raw"
     assert image.los_correction is True
+    assert image.binning_method == "footprint"
     assert image.shape == (2, 3, 4)
     assert image.nt == 2
     assert image.time.tolist() == original_time
     assert image.counts.dtype == np.dtype("int32")
     np.testing.assert_array_equal(image.counts, 3)
+    np.testing.assert_allclose(
+        image.coverage,
+        np.arange(np.prod(image.shape)).reshape(image.shape),
+    )
     np.testing.assert_allclose(image.ssalon, [12.0, 13.0])
 
     # Explicit xi/eta coordinates are needed to recover nested SI grids exactly.

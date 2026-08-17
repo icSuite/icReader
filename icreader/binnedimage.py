@@ -134,9 +134,11 @@ class BinnedImage:
             self.sensor = str(nc.sensor)
             self.correction = str(nc.image_correction)
             self.los_correction = bool(nc.los_correction)
+            self.binning_method = str(nc.binning_method)
 
             field_names = (
-                "counts", "mu", "sigma", "w", "sza", "dza", "los_factor"
+                "counts", "mu", "sigma", "w", "sza", "dza", "los_factor",
+                "coverage",
             )
             missing = [name for name in field_names if name not in nc.variables]
             if missing:

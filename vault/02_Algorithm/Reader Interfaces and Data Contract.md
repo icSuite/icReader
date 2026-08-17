@@ -1,6 +1,6 @@
 # Reader Interfaces and Data Contract
 
-Last reviewed: 2026-08-12
+Last reviewed: 2026-08-14
 
 This note records the current high-level interface visible in the live branch.
 It does not claim that all published files or downstream call sites were
@@ -17,10 +17,12 @@ There is deliberately no filename inference or fallback for older products.
 The modular data corpus will be regenerated.
 
 Product 1 (`binned_fuv`) is fully supported by `BinnedImage`. The reader loads
-one sensor's native-grid statistics and metadata and reconstructs the exact
+one sensor's native-grid statistics, intersecting-footprint count, fractional
+coverage, `binning_method`, and metadata. It reconstructs the exact
 cubed-sphere grid from the saved `grid/xi` and `grid/eta` cell centres. Scalar
-grid metadata is retained but is insufficient by itself to reproduce the
-nested SI grid exactly.
+grid metadata is retained but is insufficient by itself to reproduce nested
+sensor grids exactly. For centre-binned rollback products, `coverage` is
+present but contains NaN.
 
 Product 2 (`precipitation`) is supported by `PrecipitationImage`. It loads the
 common grid and time axis; Kp values, intervals, and provenance; sensor and
@@ -86,7 +88,7 @@ while spline evaluation can accept native, Apex, or geographic coordinates.
 
 The Product-1, Product-2, and Product-3 implementations pass ten focused
 reader tests.
-Product 1 passed a temporary writer round trip on the nested SI grid, and
-Product 2 loaded a real 20-frame `icBuilder` Zhang-Paxton example.
+Product 1 passed a temporary footprint-writer round trip on the current WIC
+grid, and Product 2 loaded a real 20-frame `icBuilder` Zhang-Paxton example.
 The existing direct conductance and spline readers and downstream analyzer
 call sites were not revalidated.

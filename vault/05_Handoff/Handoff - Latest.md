@@ -1,6 +1,6 @@
 # Handoff - Latest
 
-Last updated: 2026-08-12
+Last updated: 2026-08-14
 Repository snapshot: `modular_pipeline` at `4b75db0` with uncommitted modular-reader changes
 
 ## Project state
@@ -21,9 +21,16 @@ The binned reader reconstructs the exact cubed-sphere grid from saved `xi` and
 `eta` cell centres. Do not replace this with scalar-metadata reconstruction:
 that changes the nested SI grid.
 
+Product 1 now also requires `binning_method` and `coverage`. Footprint products
+load their fractional valid coverage; centre-binned rollback products carry
+NaN coverage. This intentionally follows the regenerated icBuilder schema and
+does not add a fallback for older modular files.
+
 ## Verification
 
 - `pytest -q -p no:cacheprovider tests/test_load.py`: 10 passed.
+- Current footprint-enabled icBuilder Product 1 round trip: passed, including
+  signal, coverage, binning method, and reconstructed grid.
 - Focused `icBuilder` schema tests: 19 passed.
 - Actual `icBuilder` nested-SI writer to `icReader` round trip: passed.
 - Actual 20-frame `icBuilder` Zhang-Paxton precipitation file: loaded.
