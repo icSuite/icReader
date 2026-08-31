@@ -116,11 +116,14 @@ def write_precipitation_product(
         nc.createDimension("dim2", shape[2])
 
         nc.product_type = "precipitation"
-        nc.schema_version = 1
+        nc.schema_version = 2
         nc.method = "image_ratio" if include_ratio else "zhang_paxton"
-        nc.proton_method = "SI12"
-        nc.proton_energy = 2.0
-        nc.proton_energy_uncertainty = 0.2
+        nc.proton_flux_source = "SI12"
+        nc.proton_energy_model = "hardy"
+        nc.proton_energy_uncertainty_method = "not modelled by Hardy et al. (1991)"
+        nc.proton_energy_coordinate_note = "Modified Apex approximation"
+        nc.proton_response_energy_min = 0.47
+        nc.proton_response_energy_max = 46.7
         nc.time_match_tolerance_seconds = 10.0
         nc.time_match_rule = "earliest common frame"
         nc.regrid_method = "bilinear"
@@ -172,6 +175,7 @@ def write_precipitation_product(
             "wic_weight", "si12_weight", "si13_weight", "w",
             "wic_corrected", "dwic_corrected",
             "si13_corrected", "dsi13_corrected",
+            "Ep_model", "Ep", "dEp", "Fp", "dFp",
             "E0", "dE0", "Fe", "dFe", "varE0Fe",
         )
         if include_ratio:
@@ -181,6 +185,11 @@ def write_precipitation_product(
         for offset, name in enumerate(fields):
             variable = nc.createVariable(name, "f4", ("time", "dim1", "dim2"))
             variable[:] = values + offset
+
+        clipped = nc.createVariable(
+            "Ep_clipping_flag", "i1", ("time", "dim1", "dim2")
+        )
+        clipped[:] = 1
 
         group = nc.createGroup("grid")
         group.position = grid.projection.position
@@ -275,13 +284,14 @@ def test_load_precipitation_product(tmp_path, include_ratio):
 
     assert isinstance(image, icreader.PrecipitationImage)
     assert image.product_type == "precipitation"
-    assert image.schema_version == 1
+    assert image.schema_version == 2
     assert image.precipitation_method == (
         "image_ratio" if include_ratio else "zhang_paxton"
     )
-    assert image.proton_method == "SI12"
-    assert image.proton_energy == 2.0
-    assert image.proton_energy_uncertainty == pytest.approx(0.2)
+    assert image.proton_flux_source == "SI12"
+    assert image.proton_energy_model == "hardy"
+    assert image.proton_response_energy_min == pytest.approx(0.47)
+    assert image.Ep_clipping_flag.all()
     assert image.time.tolist() == original_time
     assert image.kp_interval_start.tolist() == kp_start
     np.testing.assert_allclose(image.kp, [2.0, 2.3])
@@ -311,11 +321,11 @@ def test_load_conductance_product(tmp_path):
     assert isinstance(image, icreader.ModularConductanceImage)
     assert icreader.LegacyConductanceImage is icreader.ConductanceImage
     assert image.product_type == "conductance"
-    assert image.schema_version == 1
+    assert image.schema_version == 2
     assert image.precipitation_method == "zhang_paxton"
-    assert image.proton_method == "SI12"
-    assert image.proton_energy == 2.0
-    assert image.proton_energy_uncertainty == pytest.approx(0.2)
+    assert image.proton_flux_source == "SI12"
+    assert image.proton_energy_model == "hardy"
+    assert image.Ep_clipping_flag.all()
     assert image.conductance_model == "robinson"
     assert image.source_precipitation == "precipitation/or_0001.nc"
     assert image.time.tolist() == original_time
@@ -330,7 +340,10 @@ def test_load_conductance_product(tmp_path):
     assert image.kp_provenance["source"] == "GFZ"
     assert image.shape == (2, 3, 4)
     assert image.nt == 2
-    for name in ("E0", "dE0", "Fe", "dFe", "varE0Fe", "P", "H", "dP", "dH", "w"):
+    for name in (
+        "Ep_model", "Ep", "dEp", "Fp", "dFp", "E0", "dE0", "Fe",
+        "dFe", "varE0Fe", "P", "H", "dP", "dH", "w",
+    ):
         assert getattr(image, name).shape == image.shape
     np.testing.assert_allclose(image.grid.xi, original_grid.xi)
     np.testing.assert_allclose(image.grid.eta, original_grid.eta)
@@ -362,20 +375,20 @@ def test_conductance_loader_validates_ssalon_time_shape(tmp_path):
 
 def test_conductance_loader_rejects_an_unknown_schema(tmp_path):
     filename = tmp_path / "future_conductance.nc"
-    write_descriptor(filename, "conductance", schema_version=2)
+    write_descriptor(filename, "conductance", schema_version=3)
 
     with pytest.raises(
-        ValueError, match="unsupported conductance schema_version 2"
+        ValueError, match="unsupported conductance schema_version 3"
     ):
         icreader.load(filename)
 
 
 def test_precipitation_loader_rejects_an_unknown_schema(tmp_path):
     filename = tmp_path / "future_precipitation.nc"
-    write_descriptor(filename, "precipitation", schema_version=2)
+    write_descriptor(filename, "precipitation", schema_version=3)
 
     with pytest.raises(
-        ValueError, match="unsupported precipitation schema_version 2"
+        ValueError, match="unsupported precipitation schema_version 3"
     ):
         icreader.load(filename)
 

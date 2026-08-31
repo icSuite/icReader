@@ -1,7 +1,7 @@
 # Current State
 
-Last reviewed: 2026-08-14
-Repository snapshot: `modular_pipeline` at `4b75db0` with uncommitted modular-reader changes
+Last reviewed: 2026-08-31
+Repository snapshot: `modular_pipeline` at `eed30f4` with uncommitted schema-2 reader changes
 
 ## Current position
 
@@ -18,10 +18,12 @@ the root NetCDF `product_type` attribute.
 - The grid is rebuilt from the saved two-dimensional `xi` and `eta` cell
   centres. Reconstructing from scalar grid metadata alone is not exact for the
   nested SI grid.
-- Schema version 1 is required; older-file inference and legacy fallbacks were
-  deliberately omitted because the modular corpus will be regenerated.
+- Product 1 requires schema version 1. Products 2 and 3 require schema version
+  2; older-file inference and legacy fallbacks remain deliberately omitted.
 - `product_type = "precipitation"` loads as `icreader.PrecipitationImage`.
-  The reader preserves precipitation and proton methods, Kp and its
+  The reader preserves the precipitation method, separate proton-flux source
+  and proton-energy model, raw and response-clipped Ep, dEp, clipping flags,
+  Fp/dFp, Kp and its
   provenance, sensor and source provenance, individual and combined weights,
   corrected images, precipitation estimates, and the exact saved grid.
 - `product_type = "conductance"` loads as
@@ -33,6 +35,7 @@ the root NetCDF `product_type` attribute.
 - The old directly instantiated conductance reader remains available as both
   `ConductanceImage` and the explicit alias `LegacyConductanceImage`.
 - Ten focused dispatcher/reader tests pass.
+- A real orbit-0364 schema-2 Product-2/Product-3 round trip passes.
 - A temporary end-to-end check passed from the current footprint-enabled
   `icBuilder.BinnedImage` writer through `icreader.load()`; signal, coverage,
   method, and the reconstructed 46-by-46 WIC grid agreed.

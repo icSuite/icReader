@@ -47,18 +47,28 @@ class PrecipitationImage:
         self.filename = str(filename)
 
         with Dataset(filename) as nc:
-            check_product(nc, "precipitation")
+            check_product(nc, "precipitation", schema_version=2)
 
             # Processing choices and provenance
             self.product_type = nc.product_type
             self.schema_version = int(nc.schema_version)
             self.method = str(nc.method)
             self.precipitation_method = self.method
-            self.proton_method = str(nc.proton_method)
-            self.proton_energy = float(nc.proton_energy)
-            self.proton_energy_uncertainty = float(
-                nc.proton_energy_uncertainty
+            self.proton_flux_source = str(nc.proton_flux_source)
+            self.proton_energy_model = str(nc.proton_energy_model)
+            self.proton_energy_uncertainty_method = str(
+                nc.proton_energy_uncertainty_method
             )
+            self.proton_energy_coordinate_note = str(
+                nc.proton_energy_coordinate_note
+            )
+            self.proton_response_energy_min = float(nc.proton_response_energy_min)
+            self.proton_response_energy_max = float(nc.proton_response_energy_max)
+            if self.proton_energy_model == "constant":
+                self.proton_energy_constant = float(nc.proton_energy_constant)
+                self.proton_energy_uncertainty_constant = float(
+                    nc.proton_energy_uncertainty_constant
+                )
             self.time_match_tolerance_seconds = float(
                 nc.time_match_tolerance_seconds
             )
@@ -110,6 +120,7 @@ class PrecipitationImage:
                 "wic_weight", "si12_weight", "si13_weight",
                 "wic_corrected", "dwic_corrected",
                 "si13_corrected", "dsi13_corrected",
+                "Ep_model", "Ep", "dEp", "Fp", "dFp",
                 "E0", "dE0", "Fe", "dFe", "varE0Fe",
             )
             missing = [name for name in field_names if name not in nc.variables]
@@ -120,6 +131,12 @@ class PrecipitationImage:
 
             for name in field_names:
                 setattr(self, name, np.asarray(nc.variables[name][:]))
+
+            if "Ep_clipping_flag" not in nc.variables:
+                raise ValueError("precipitation product is missing: Ep_clipping_flag")
+            self.Ep_clipping_flag = np.asarray(
+                nc.variables["Ep_clipping_flag"][:], dtype=bool
+            )
 
             # These fields depend on the selected precipitation method/schema.
             for name in ("w", "R", "dR"):
@@ -133,7 +150,7 @@ class PrecipitationImage:
         if len(self.shape) != 3:
             raise ValueError("precipitation image fields must be three-dimensional")
 
-        image_fields = list(field_names)
+        image_fields = list(field_names) + ["Ep_clipping_flag"]
         image_fields += [name for name in ("w", "R", "dR") if hasattr(self, name)]
         for name in image_fields:
             if getattr(self, name).shape != self.shape:

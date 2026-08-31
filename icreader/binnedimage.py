@@ -12,7 +12,7 @@ from secsy import CSgrid, CSprojection
 SCHEMA_VERSION = 1
 
 
-def check_product(nc, expected_type):
+def check_product(nc, expected_type, schema_version=SCHEMA_VERSION):
     """Check that a NetCDF file is the expected modular product."""
 
     if "product_type" not in nc.ncattrs():
@@ -24,10 +24,10 @@ def check_product(nc, expected_type):
 
     if "schema_version" not in nc.ncattrs():
         raise ValueError("NetCDF file has no schema_version descriptor")
-    if int(nc.schema_version) != SCHEMA_VERSION:
+    if int(nc.schema_version) != schema_version:
         raise ValueError(
             f"unsupported {expected_type} schema_version {nc.schema_version}; "
-            f"expected {SCHEMA_VERSION}"
+            f"expected {schema_version}"
         )
 
 

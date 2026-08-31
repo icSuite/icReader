@@ -18,17 +18,27 @@ class ModularConductanceImage:
         self.filename = str(filename)
 
         with Dataset(filename) as nc:
-            check_product(nc, "conductance")
+            check_product(nc, "conductance", schema_version=2)
 
             # Processing choices and provenance
             self.product_type = nc.product_type
             self.schema_version = int(nc.schema_version)
             self.precipitation_method = str(nc.precipitation_method)
-            self.proton_method = str(nc.proton_method)
-            self.proton_energy = float(nc.proton_energy)
-            self.proton_energy_uncertainty = float(
-                nc.proton_energy_uncertainty
+            self.proton_flux_source = str(nc.proton_flux_source)
+            self.proton_energy_model = str(nc.proton_energy_model)
+            self.proton_energy_uncertainty_method = str(
+                nc.proton_energy_uncertainty_method
             )
+            self.proton_energy_coordinate_note = str(
+                nc.proton_energy_coordinate_note
+            )
+            self.proton_response_energy_min = float(nc.proton_response_energy_min)
+            self.proton_response_energy_max = float(nc.proton_response_energy_max)
+            if self.proton_energy_model == "constant":
+                self.proton_energy_constant = float(nc.proton_energy_constant)
+                self.proton_energy_uncertainty_constant = float(
+                    nc.proton_energy_uncertainty_constant
+                )
             self.conductance_model = str(nc.conductance_model)
             self.source_precipitation = getattr(
                 nc, "source_precipitation", None
@@ -59,6 +69,7 @@ class ModularConductanceImage:
 
             # Precipitation state, conductance, uncertainties, and weight
             field_names = (
+                "Ep_model", "Ep", "dEp", "Fp", "dFp",
                 "E0", "dE0", "Fe", "dFe", "varE0Fe",
                 "P", "H", "dP", "dH", "w",
             )
@@ -71,13 +82,19 @@ class ModularConductanceImage:
             for name in field_names:
                 setattr(self, name, np.asarray(nc.variables[name][:]))
 
+            if "Ep_clipping_flag" not in nc.variables:
+                raise ValueError("conductance product is missing: Ep_clipping_flag")
+            self.Ep_clipping_flag = np.asarray(
+                nc.variables["Ep_clipping_flag"][:], dtype=bool
+            )
+
             self.grid = load_grid(nc)
 
         self.shape = self.P.shape
         if len(self.shape) != 3:
             raise ValueError("conductance image fields must be three-dimensional")
 
-        for name in field_names:
+        for name in (*field_names, "Ep_clipping_flag"):
             if getattr(self, name).shape != self.shape:
                 raise ValueError(
                     f"{name} does not match the conductance image dimensions"

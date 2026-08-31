@@ -1,7 +1,7 @@
 # Handoff - Latest
 
-Last updated: 2026-08-14
-Repository snapshot: `modular_pipeline` at `4b75db0` with uncommitted modular-reader changes
+Last updated: 2026-08-31
+Repository snapshot: `modular_pipeline` at `eed30f4` with uncommitted schema-2 reader changes
 
 ## Project state
 
@@ -12,6 +12,11 @@ weight, methods and provenance, Kp, time, subsolar longitude, and exact grid.
 Product 3 now requires `ssalon` to match its time dimension and exposes `mlon`
 with the same time-dependent convention as the binned and precipitation
 readers.
+
+Product 1 remains schema 1. Products 2 and 3 now require schema 2 and expose
+SI12 as the proton-flux source, Hardy or constant as the proton-energy model,
+raw `Ep_model`, response-clipped `Ep`, dEp, the clipping flag, and Fp/dFp.
+An isolated real orbit-0364 Product-2/Product-3 round trip passed.
 
 The pre-modular reader remains available as `ConductanceImage` and the clear
 alias `LegacyConductanceImage`; the dispatcher returns

@@ -11,7 +11,7 @@ retested during the review.
 `icreader.load(filename)` uses two required root NetCDF attributes:
 
 - `product_type`: `binned_fuv`, `precipitation`, or `conductance`;
-- `schema_version`: currently `1`.
+- `schema_version`: `1` for Product 1 and `2` for Products 2 and 3.
 
 There is deliberately no filename inference or fallback for older products.
 The modular data corpus will be regenerated.
@@ -26,16 +26,17 @@ present but contains NaN.
 
 Product 2 (`precipitation`) is supported by `PrecipitationImage`. It loads the
 common grid and time axis; Kp values, intervals, and provenance; sensor and
-source provenance; proton and precipitation methods; corrected sensor images;
-individual and optional combined weights; and the precipitation estimates
-`E0`, `dE0`, `Fe`, `dFe`, and `varE0Fe`. Ratio products additionally expose
-`R` and `dR`. The combined `w` field is optional so files written immediately
-before that field was introduced remain readable.
+source provenance; the separate proton-flux source and proton-energy model;
+corrected sensor images; individual and combined weights; and the
+precipitation estimates `E0`, `dE0`, `Fe`, `dFe`, and `varE0Fe`. The proton
+state contains raw model energy `Ep_model`, response-clipped energy `Ep`,
+`dEp`, clipping flags, and SI12-derived `Fp`/`dFp`. Ratio products additionally
+expose `R` and `dR`.
 
 Product 3 (`conductance`) is supported by `ModularConductanceImage`. It carries
-the precipitation state (`E0`, `dE0`, `Fe`, `dFe`, and `varE0Fe`), `P`, `H`,
-`dP`, `dH`, the unchanged precipitation weight, processing choices and
-provenance, time, Kp, subsolar longitude (`ssalon`), and the exact grid. The
+the proton and precipitation state, `P`, `H`, `dP`, `dH`, the unchanged
+precipitation weight, processing choices and provenance, time, Kp, subsolar
+longitude (`ssalon`), and the exact grid. The
 one-dimensional `ssalon` coordinate is required to match the time dimension;
 the reader uses it to expose time-dependent magnetic longitude through `mlon`,
 consistent with Products 1 and 2. The source precipitation filename is retained
