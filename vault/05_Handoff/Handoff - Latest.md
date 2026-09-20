@@ -1,7 +1,22 @@
 # Handoff - Latest
 
 Last updated: 2026-09-20
-Repository snapshot: `modular_pipeline` at `1fd47ca` with the detector/CS reader implementation and documentation uncommitted
+Repository snapshot: `modular_pipeline` at `2324d6c` with an uncommitted
+public variable-metadata addition
+
+## Latest checkpoint: public variable metadata added
+
+Detector and CS products now expose a read-only mapping of serialized
+attributes for every declared variable as `product.variable_attrs`. Lazy
+fields expose their entry as `field.attrs`, and `field.units` uses the same
+preserved metadata. This lets icBuilder retain restart checks for units and
+frame-quality meanings without accessing icReader's private NetCDF handle.
+The metadata is copied while the file is open and remains available after the
+context closes.
+
+The corresponding icBuilder migration is implemented and verified. Product-2,
+Product-3, and all four-orbit CS arrays remain exactly unchanged, while the CS
+read-once performance is preserved. All 34 icReader tests pass.
 
 ## Latest checkpoint: detector and CS readers implemented
 
@@ -68,16 +83,17 @@ does not add a fallback for older modular files.
 
 ## Next action
 
-Commit the verified reader implementation, then migrate icAnalyzer to consume
-the new 46-by-46 `conductance_cs` corpus through `icreader.load()`. Keep reader
-acceptance separate from scientific acceptance of the detector and conductance
-products.
+Commit and push the variable-metadata API, then pin icBuilder to that exact
+commit. Afterward, migrate icAnalyzer to consume the new 46-by-46
+`conductance_cs` corpus through `icreader.load()`. Keep reader acceptance
+separate from scientific acceptance of the detector and conductance products.
 
 ## Portfolio impact
 
 - Central update needed: No
 - Changes: icReader now supports all five detector-first and CS product types,
-  including lazy detector access and verified CS-grid reconstruction.
+  including lazy detector access, public immutable variable metadata, and
+  verified CS-grid reconstruction. icBuilder now consumes this interface.
 - No deadline or portfolio priority changed.
 
 ## Entry points

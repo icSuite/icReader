@@ -122,6 +122,8 @@ def write_variables(nc, reader_class):
             values.reshape(-1)[0] = 0
         elif kind == "int":
             values = np.arange(np.prod(shape), dtype=np.int32).reshape(shape)
+            if name.endswith("_frame_quality"):
+                variable.flag_meanings = "rejected usable science_ready"
         else:
             values = (
                 np.arange(np.prod(shape), dtype=np.float32).reshape(shape)
@@ -222,6 +224,13 @@ def test_dispatch_and_lazy_field_access(
     assert product.schema_version == schema
     assert product.time.shape == (2,)
     assert product.si13_source_time[1] is None
+    assert product.variable_attrs["wic_frame_quality"]["flag_meanings"] == (
+        "rejected usable science_ready"
+    )
+    with pytest.raises(TypeError):
+        product.variable_attrs["wic_frame_quality"]["flag_meanings"] = "changed"
+    with pytest.raises(TypeError):
+        product.variable_attrs["new_variable"] = {}
 
     name = next(iter(product.fields))
     field = product.fields[name]
@@ -232,11 +241,15 @@ def test_dispatch_and_lazy_field_access(
         np.dtype(bool) if field.kind == "bool" else np.dtype(field._variable.dtype)
     )
     assert field.dtype == expected_dtype
+    assert field.attrs is product.variable_attrs[name]
     assert product.read(name, 0).shape == product.shape[1:]
     np.testing.assert_array_equal(field[0], product.read(name, 0))
 
     product.close()
     assert product.closed
+    assert product.variable_attrs["wic_frame_quality"]["flag_meanings"] == (
+        "rejected usable science_ready"
+    )
     with pytest.raises(RuntimeError, match="product is closed"):
         product.read(name, 0)
 

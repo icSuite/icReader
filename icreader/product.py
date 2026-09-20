@@ -97,7 +97,11 @@ class ProductField:
 
     @property
     def units(self):
-        return getattr(self._variable, "units", None)
+        return self.attrs.get("units")
+
+    @property
+    def attrs(self):
+        return self._product.variable_attrs[self.name]
 
     def __len__(self):
         return self.shape[0]
@@ -222,8 +226,13 @@ class NetCDFProduct:
     def _load_fields(self):
         self.fields = {}
         self.time_encoding = {}
+        self.variable_attrs = {}
         for name, (_dimensions, kind, eager) in self.VARIABLES.items():
             variable = self._nc.variables[name]
+            self.variable_attrs[name] = MappingProxyType({
+                attribute: variable.getncattr(attribute)
+                for attribute in variable.ncattrs()
+            })
             if eager:
                 if kind == "time":
                     values = decode_time(variable)
@@ -240,6 +249,7 @@ class NetCDFProduct:
                 setattr(self, name, field)
         self.fields = MappingProxyType(self.fields)
         self.time_encoding = MappingProxyType(self.time_encoding)
+        self.variable_attrs = MappingProxyType(self.variable_attrs)
 
     def _finish_initialization(self):
         """Hook for product-specific metadata or grid loading."""

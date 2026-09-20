@@ -65,6 +65,12 @@ the caller slices their `ProductField` proxy or calls
 `product.read(name, index=None)`. Float dtype is preserved, validity fields
 are returned as Boolean arrays, and masked float values become NaN.
 
+Serialized attributes for every declared variable are copied at open time to
+the immutable `product.variable_attrs[name]` mapping. A lazy
+`ProductField.attrs` property returns that same mapping, and `field.units` is
+the convenience view of its `units` entry. This metadata remains usable after
+the context closes; reading array data after close remains an error.
+
 Detector geometry remains in its stored time-dependent `glat`, `glon`,
 `mlat`, `mlon`, and `mlt` fields. The reader does not regrid it.
 
@@ -78,6 +84,11 @@ hard error.
 The reader exposes stored central/uncertainty masks, coverage, contributor
 counts, clipping diagnostics, provenance, and physical fields without
 recalculating validity, precipitation, conductance, or spatial mapping.
+
+icBuilder now uses these detector and CS readers for Product-2/Product-3
+construction, paired CS reduction, and restart validation. Complete-orbit
+calculations materialize each needed cube once; restart checks use validated
+metadata without decompressing full detector arrays.
 
 ## Direct conductance products
 

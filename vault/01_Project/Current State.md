@@ -1,8 +1,8 @@
 # Current State
 
 Last reviewed: 2026-09-20
-Repository snapshot: `modular_pipeline` at `1fd47ca` with uncommitted
-detector/CS reader implementation and documentation
+Repository snapshot: `modular_pipeline` at `2324d6c` with an uncommitted
+public variable-metadata addition
 
 ## Current position
 
@@ -46,6 +46,11 @@ the root NetCDF `product_type` attribute.
 - Detector-first three-dimensional fields are lazy `ProductField` proxies.
   Slicing or `read()` materializes only the requested variable selection;
   product objects are context-managed and close their NetCDF handle.
+- Every declared variable exposes its serialized attributes through the
+  immutable `product.variable_attrs[name]` mapping. Lazy fields expose the
+  same mapping as `field.attrs`, so callers can validate units and flags
+  without accessing the private NetCDF handle. Metadata remains available
+  after the product closes.
 - CS readers reconstruct a `secsy.CSgrid` from stored projection, radius, and
   explicit edges, then require exact coordinate agreement and the frozen hash.
 - All 34 focused tests pass. All 20 products in the local four-orbit test tree
@@ -61,10 +66,11 @@ modular dispatcher.
 
 ## Next action
 
-Commit the verified reader implementation, then use `ConductanceCS` as the
-reader boundary when the 46-by-46 corpus is introduced to icAnalyzer. Reader
-support does not resolve the separate Hardy-clipping, low-signal validity, or
-E0--Fe covariance decisions in the source products.
+Commit and push the public variable-metadata addition, then pin icBuilder to
+that exact revision. Afterward, use `ConductanceCS` as the reader boundary when
+the 46-by-46 corpus is introduced to icAnalyzer. Reader support does not
+resolve the separate Hardy-clipping, low-signal validity, or E0--Fe covariance
+decisions in the source products.
 
 ## Known gaps
 
