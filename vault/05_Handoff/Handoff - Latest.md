@@ -1,7 +1,22 @@
 # Handoff - Latest
 
-Last updated: 2026-08-31
-Repository snapshot: `modular_pipeline` at `eed30f4` with uncommitted schema-2 reader changes
+Last updated: 2026-09-20
+Repository snapshot: `modular_pipeline` at `1fd47ca` with the detector/CS reader implementation and documentation uncommitted
+
+## Latest checkpoint: detector and CS readers implemented
+
+`icreader.load()` now dispatches the five detector-first icBuilder products:
+schema-2 `fuv_detector`, schema-3 `precipitation_detector`, schema-2
+`conductance_detector`, and schema-1 `precipitation_cs`/`conductance_cs`.
+Large three-dimensional fields remain lazy through sliceable `ProductField`
+proxies while metadata and small coordinate variables are loaded eagerly. The
+new product objects own their NetCDF handle and support context-managed use.
+
+The CS readers reconstruct an actual `secsy.CSgrid` as `product.grid` from the
+stored projection metadata and explicit grid edges. They require exact
+agreement with every stored grid coordinate and with the SHA-256 coordinate
+fingerprint. They do not rerun detector physics, change data, or regrid the
+products. Existing modular and legacy readers remain unchanged.
 
 ## Project state
 
@@ -33,7 +48,17 @@ does not add a fallback for older modular files.
 
 ## Verification
 
-- `pytest -q -p no:cacheprovider tests/test_load.py`: 10 passed.
+- `PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider tests`:
+  34 passed.
+- All 20 completed detector/CS products in the local four-orbit icBuilder test
+  corpus opened successfully; every CS grid reconstructed and representative
+  lazy fields were read.
+- The five orbit-0085 products passed direct comparisons against raw NetCDF
+  variables, including central values, uncertainty, masks, coverage, and
+  counts.
+- The largest detector file opened at about 62 MB maximum RSS; reading one
+  256-by-256 field frame reached about 102 MB maximum RSS, confirming that
+  opening a product does not materialize its full detector arrays.
 - Current footprint-enabled icBuilder Product 1 round trip: passed, including
   signal, coverage, binning method, and reconstructed grid.
 - Focused `icBuilder` schema tests: 19 passed.
@@ -43,19 +68,27 @@ does not add a fallback for older modular files.
 
 ## Next action
 
-Use `icreader.load()` in downstream modular workflows and migrate legacy
-direct-reader call sites when they begin consuming the regenerated products.
+Commit the verified reader implementation, then migrate icAnalyzer to consume
+the new 46-by-46 `conductance_cs` corpus through `icreader.load()`. Keep reader
+acceptance separate from scientific acceptance of the detector and conductance
+products.
 
 ## Portfolio impact
 
-- Central update needed: Yes
-- Changes: the modular reader contract now covers Products 1, 2, and 3.
+- Central update needed: No
+- Changes: icReader now supports all five detector-first and CS product types,
+  including lazy detector access and verified CS-grid reconstruction.
 - No deadline or portfolio priority changed.
 
 ## Entry points
 
 - `icreader/__init__.py`
+- `icreader/product.py`
+- `icreader/detectorproduct.py`
+- `icreader/csproduct.py`
 - `icreader/binnedimage.py`
 - `icreader/modularconductanceimage.py`
 - `tests/test_load.py`
+- `tests/test_detector_first_products.py`
 - `vault/02_Algorithm/Reader Interfaces and Data Contract.md`
+- `vault/02_Algorithm/Detector and CS Reader Implementation Plan.md`

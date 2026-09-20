@@ -1,6 +1,6 @@
 # Reader Interfaces and Data Contract
 
-Last reviewed: 2026-08-14
+Last reviewed: 2026-09-20
 
 This note records the current high-level interface visible in the live branch.
 It does not claim that all published files or downstream call sites were
@@ -46,6 +46,39 @@ The pre-modular direct reader remains exported as `ConductanceImage` for old
 call sites and has the explicit alias `LegacyConductanceImage`. New modular
 files should be opened through `icreader.load()`.
 
+## Detector-first products
+
+The same dispatcher now recognizes five exact detector-first contracts:
+
+| Product type | Representation | Schema | Reader |
+| --- | --- | ---: | --- |
+| `fuv_detector` | `detector` | 2 | `FUVDetector` |
+| `precipitation_detector` | `detector` | 3 | `PrecipitationDetector` |
+| `conductance_detector` | `detector` | 2 | `ConductanceDetector` |
+| `precipitation_cs` | `cs` | 1 | `PrecipitationCS` |
+| `conductance_cs` | `cs` | 1 | `ConductanceCS` |
+
+These readers are context-managed because they retain an open NetCDF handle.
+One-dimensional time, source-index, frame-quality, Kp, and subsolar fields are
+loaded at construction. Three-dimensional variables remain compressed until
+the caller slices their `ProductField` proxy or calls
+`product.read(name, index=None)`. Float dtype is preserved, validity fields
+are returned as Boolean arrays, and masked float values become NaN.
+
+Detector geometry remains in its stored time-dependent `glat`, `glon`,
+`mlat`, `mlon`, and `mlt` fields. The reader does not regrid it.
+
+For CS products, `product.grid` is a reconstructed `secsy.CSgrid`. The reader
+uses the stored projection, radius, and explicit xi/eta edges together with
+the canonical metadata identified by `grid_id`. It then requires exact
+agreement with the stored xi, eta, MLAT, MLT, and edge arrays and verifies the
+coordinate SHA-256. An unknown grid identity or any coordinate drift is a
+hard error.
+
+The reader exposes stored central/uncertainty masks, coverage, contributor
+counts, clipping diagnostics, provenance, and physical fields without
+recalculating validity, precipitation, conductance, or spatial mapping.
+
 ## Direct conductance products
 
 `ConductanceImage(filename)` opens one NetCDF product and reconstructs:
@@ -87,9 +120,13 @@ while spline evaluation can accept native, Apex, or geographic coordinates.
 
 ## Verification boundary
 
-The Product-1, Product-2, and Product-3 implementations pass ten focused
-reader tests.
+The legacy modular Product-1, Product-2, and Product-3 implementations and the
+five detector-first readers pass 34 focused tests.
 Product 1 passed a temporary footprint-writer round trip on the current WIC
 grid, and Product 2 loaded a real 20-frame `icBuilder` Zhang-Paxton example.
+All 20 detector-first products in the local four-orbit pipeline test tree
+opened successfully, reconstructed their CS grids where applicable, and read
+a representative frame on demand. Selected fields from all five orbit-0085
+products agree exactly with direct NetCDF reads.
 The existing direct conductance and spline readers and downstream analyzer
 call sites were not revalidated.

@@ -1,7 +1,8 @@
 # Current State
 
-Last reviewed: 2026-08-31
-Repository snapshot: `modular_pipeline` at `eed30f4` with uncommitted schema-2 reader changes
+Last reviewed: 2026-09-20
+Repository snapshot: `modular_pipeline` at `1fd47ca` with uncommitted
+detector/CS reader implementation and documentation
 
 ## Current position
 
@@ -39,6 +40,18 @@ the root NetCDF `product_type` attribute.
 - A temporary end-to-end check passed from the current footprint-enabled
   `icBuilder.BinnedImage` writer through `icreader.load()`; signal, coverage,
   method, and the reconstructed 46-by-46 WIC grid agreed.
+- `icreader.load()` now also dispatches schema-2 `fuv_detector`, schema-3
+  `precipitation_detector`, schema-2 `conductance_detector`, and schema-1
+  `precipitation_cs`/`conductance_cs` products.
+- Detector-first three-dimensional fields are lazy `ProductField` proxies.
+  Slicing or `read()` materializes only the requested variable selection;
+  product objects are context-managed and close their NetCDF handle.
+- CS readers reconstruct a `secsy.CSgrid` from stored projection, radius, and
+  explicit edges, then require exact coordinate agreement and the frozen hash.
+- All 34 focused tests pass. All 20 products in the local four-orbit test tree
+  open successfully; selected fields in every orbit-0085 product match direct
+  NetCDF reads. Opening the largest local detector orbit uses 61,764-KB peak
+  RSS; reading one frame uses 102,064 KB.
 
 ## Preserved interfaces
 
@@ -48,9 +61,10 @@ modular dispatcher.
 
 ## Next action
 
-Use `icreader.load()` for all regenerated modular products. Migrate downstream
-code away from direct legacy-reader construction as those workflows move to
-the regenerated corpus.
+Commit the verified reader implementation, then use `ConductanceCS` as the
+reader boundary when the 46-by-46 corpus is introduced to icAnalyzer. Reader
+support does not resolve the separate Hardy-clipping, low-signal validity, or
+E0--Fe covariance decisions in the source products.
 
 ## Known gaps
 
