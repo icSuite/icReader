@@ -76,10 +76,9 @@ Detector geometry remains in its stored time-dependent `glat`, `glon`,
 
 For CS products, `product.grid` is a reconstructed `secsy.CSgrid`. The reader
 uses the stored projection, radius, and explicit xi/eta edges together with
-the canonical metadata identified by `grid_id`. It then requires exact
-agreement with the stored xi, eta, MLAT, MLT, and edge arrays and verifies the
-coordinate SHA-256. An unknown grid identity or any coordinate drift is a
-hard error.
+the canonical metadata identified by `grid_id`. It validates only that the CS
+product and reconstructed grid have the required 46-by-46 shape. It does not
+calculate or enforce a coordinate hash.
 
 The reader exposes stored central/uncertainty masks, coverage, contributor
 counts, clipping diagnostics, provenance, and physical fields without

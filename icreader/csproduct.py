@@ -2,7 +2,6 @@
 
 #%% Imports
 
-import hashlib
 from types import MappingProxyType
 
 import numpy as np
@@ -61,23 +60,6 @@ COMMON_TIME_VARIABLES = {
 }
 
 
-def coordinate_hash(grid):
-    """Return the frozen coordinate fingerprint used by icBuilder."""
-
-    arrays = (
-        grid.xi_mesh[0],
-        grid.eta_mesh[:, 0],
-        grid.xi,
-        grid.eta,
-        grid.lat,
-        np.mod(grid.lon / 15.0, 24.0),
-    )
-    digest = hashlib.sha256()
-    for values in arrays:
-        digest.update(np.asarray(values, dtype="<f8").tobytes(order="C"))
-    return digest.hexdigest()
-
-
 #%% Common CS behavior
 
 class CSProduct(NetCDFProduct):
@@ -87,9 +69,8 @@ class CSProduct(NetCDFProduct):
     SCHEMA_VERSION = 1
     DIMENSIONS = ("time", "dim1", "dim2")
     REQUIRED_ATTRIBUTES = (
-        "grid_id", "grid_coordinate_sha256", "binning_method",
-        "uncertainty_method", "coordinate_system", "reference_height_km",
-        "software_version",
+        "grid_id", "binning_method", "uncertainty_method",
+        "coordinate_system", "reference_height_km", "software_version",
     )
 
     def _finish_initialization(self):
@@ -129,8 +110,8 @@ class CSProduct(NetCDFProduct):
         group = self._nc.groups["grid"]
 
         required_attributes = (
-            "grid_id", "coordinate_sha256", "position", "orientation",
-            "reference_height_km", "radius_metres",
+            "grid_id", "position", "orientation", "reference_height_km",
+            "radius_metres",
         )
         missing_attributes = [
             name for name in required_attributes if name not in group.ncattrs()
@@ -164,8 +145,6 @@ class CSProduct(NetCDFProduct):
 
         if group.grid_id != self.grid_id:
             raise ValueError("root and grid-group grid_id differ")
-        if group.coordinate_sha256 != self.grid_coordinate_sha256:
-            raise ValueError("root and grid-group coordinate hashes differ")
         if not np.isclose(
             float(group.reference_height_km), float(self.reference_height_km)
         ):
@@ -207,28 +186,10 @@ class CSProduct(NetCDFProduct):
             R=radius,
         )
 
-        reconstructed = {
-            "xi": np.asarray(grid.xi),
-            "eta": np.asarray(grid.eta),
-            "mlat": np.asarray(grid.lat),
-            "mlt": np.mod(np.asarray(grid.lon) / 15.0, 24.0),
-            "xi_edge": np.asarray(grid.xi_mesh[0]),
-            "eta_edge": np.asarray(grid.eta_mesh[:, 0]),
-        }
-        differing = [
-            name for name in stored
-            if not np.array_equal(reconstructed[name], stored[name])
-        ]
-        if differing:
+        if grid.shape != contract["shape"]:
             raise ValueError(
-                "stored coordinates do not reconstruct the declared CS grid: "
-                + ", ".join(differing)
-            )
-
-        reconstructed_hash = coordinate_hash(grid)
-        if reconstructed_hash != self.grid_coordinate_sha256:
-            raise ValueError(
-                "reconstructed CS grid coordinate hash does not match the file"
+                f"{self.grid_id} reconstructed as shape {grid.shape}; "
+                f"expected {contract['shape']}"
             )
         return grid
 

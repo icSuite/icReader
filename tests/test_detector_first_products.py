@@ -9,7 +9,7 @@ from netCDF4 import Dataset, date2num
 from secsy import CSgrid, CSprojection
 
 import icreader
-from icreader.csproduct import GRID_REGISTRY, coordinate_hash
+from icreader.csproduct import GRID_REGISTRY
 from icreader.product import ProductField
 
 
@@ -147,13 +147,9 @@ def write_grid(nc):
         edges=(edges, edges),
         R=6_501_200.0,
     )
-    digest = coordinate_hash(grid)
-
     nc.grid_id = "image_apex_130km_46x46_v1"
-    nc.grid_coordinate_sha256 = digest
     group = nc.createGroup("grid")
     group.grid_id = nc.grid_id
-    group.coordinate_sha256 = digest
     group.position = grid.projection.position
     group.orientation = grid.projection.orientation
     group.reference_height_km = 130.0
@@ -310,7 +306,7 @@ def test_rejects_wrong_representation_or_schema(
 
 
 @pytest.mark.parametrize("reader_class", (icreader.PrecipitationCS, icreader.ConductanceCS))
-def test_cs_reader_reconstructs_exact_secsy_grid(tmp_path, reader_class):
+def test_cs_reader_reconstructs_46_by_46_secsy_grid(tmp_path, reader_class):
     product_type = (
         "precipitation_cs"
         if reader_class is icreader.PrecipitationCS else "conductance_cs"
@@ -324,17 +320,7 @@ def test_cs_reader_reconstructs_exact_secsy_grid(tmp_path, reader_class):
         np.testing.assert_array_equal(product.grid.eta, original.eta)
         np.testing.assert_array_equal(product.mlat, original.lat)
         np.testing.assert_array_equal(product.mlt, np.mod(original.lon / 15, 24))
-        assert coordinate_hash(product.grid) == product.grid_coordinate_sha256
-
-
-def test_cs_reader_rejects_coordinate_drift(tmp_path):
-    filename = tmp_path / "conductance_cs.nc"
-    write_product(filename, "conductance_cs", "cs", 1, icreader.ConductanceCS)
-    with Dataset(filename, "a") as nc:
-        nc.groups["grid"].variables["mlat"][0, 0] += 0.01
-
-    with pytest.raises(ValueError, match="do not reconstruct"):
-        icreader.load(filename)
+        assert product.grid.shape == (46, 46)
 
 
 @pytest.mark.skipif(

@@ -116,13 +116,13 @@ the established icReader interface. Construct it with the stored projection,
 radius, and explicit `xi_edge`/`eta_edge` arrays. The explicit edges, rather
 than scalar dimensions alone, determine the reconstructed cells.
 
-The current CS files store:
+The CS files store:
 
 - `xi`, `eta`, `mlat`, and `mlt` cell centres;
 - `xi_edge` and `eta_edge`;
 - projection position and orientation;
 - reference height and radius;
-- `grid_id` and coordinate SHA-256.
+- `grid_id`.
 
 They do not currently store `L`, `W`, `Lres`, or `Wres`. For the supported
 `image_apex_130km_46x46_v1` identity, use a small explicit registry containing
@@ -130,19 +130,9 @@ the canonical icBuilder values of 50,000,000 m for L/W and 200,000 m for
 Lres/Wres. Reject an unknown grid identity rather than guessing these values.
 A future builder schema can serialize them directly.
 
-After reconstruction, compare `grid.xi`, `grid.eta`, `grid.lat`, the wrapped
-`grid.lon / 15`, and both edge arrays against the stored variables. Recompute
-the coordinate hash in the same byte order and array order used by icBuilder:
-`xi_edge`, `eta_edge`, `xi`, `eta`, `mlat`, then `mlt`. Construction fails if
-the root identity, grid-group identity, reconstructed coordinates, stored
-coordinates, or hash disagree. The file remains the validation authority,
-while consumers receive the requested working `secsy.CSgrid` object.
-
-This reconstruction was checked against the actual orbit-0085
-`conductance_cs` file. All six coordinate/edge arrays are bit-for-bit equal
-and the reconstructed hash is
-`50aa89a6bdefc05a8ef003ad7bffb5ea800d7014fd173e16f88f821b1ed465bf`,
-matching the file.
+After reconstruction, validate only that the product and reconstructed grid
+have shape `(46, 46)`. Do not calculate a coordinate hash or require
+byte-for-byte equality of derived coordinates across numerical environments.
 
 ### 5. Keep provenance available without inventing a generic metadata model
 
@@ -165,7 +155,7 @@ than putting every schema into the dispatcher:
 - `icreader/detectorproduct.py`: the three detector schema manifests and
   detector reader classes;
 - `icreader/csproduct.py`: the canonical-grid registry, secsy reconstruction,
-  coordinate hashing, and the two CS reader classes.
+  shape validation, and the two CS reader classes.
 
 Modify:
 
@@ -215,8 +205,7 @@ remains small.
 
 1. Reconstruct `secsy.CSprojection` and `secsy.CSgrid` from the stored
    projection, radius, explicit edges, and canonical grid registry.
-2. Verify root and group grid identities, every reconstructed coordinate, and
-   the coordinate hash against the stored grid group.
+2. Verify that the product and reconstructed grid are 46 by 46.
 3. Implement `PrecipitationCS` and `ConductanceCS`.
 4. Preserve coverage, contributor counts, clipping diagnostics, and separate
    central/uncertainty masks.
@@ -242,7 +231,7 @@ Run focused tests covering:
 - float, integer, boolean, and sliced field reads;
 - no three-dimensional field read during construction;
 - context-manager closure and access-after-close errors;
-- exact CS coordinate arrays and coordinate hash;
+- the required 46-by-46 CS shape;
 - Product-2/Product-3 source and companion provenance;
 - continued success of the existing ten reader tests.
 
@@ -281,8 +270,7 @@ The work is complete when:
    schema version.
 3. Detector construction is on-demand and does not load full image cubes.
 4. Selected reads match direct NetCDF values, masks, and dtypes.
-5. CS readers expose a `secsy.CSgrid` whose edges and coordinates match the
-   file and pass the frozen coordinate hash.
+5. CS readers expose a 46-by-46 `secsy.CSgrid`.
 6. No reader recalculates physics, validity, or spatial mapping.
 7. Existing public readers and their ten focused tests still pass.
 8. All five real orbit-0085 products pass an end-to-end reader smoke test.

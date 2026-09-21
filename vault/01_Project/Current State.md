@@ -1,6 +1,6 @@
 # Current State
 
-Last reviewed: 2026-09-20
+Last reviewed: 2026-09-21
 Repository snapshot: `modular_pipeline` at `2324d6c` with an uncommitted
 public variable-metadata addition
 
@@ -52,8 +52,9 @@ the root NetCDF `product_type` attribute.
   without accessing the private NetCDF handle. Metadata remains available
   after the product closes.
 - CS readers reconstruct a `secsy.CSgrid` from stored projection, radius, and
-  explicit edges, then require exact coordinate agreement and the frozen hash.
-- All 34 focused tests pass. All 20 products in the local four-orbit test tree
+  explicit edges, then validate only that the CS data and reconstructed grid
+  are 46 by 46. Coordinate-hash enforcement has been removed.
+- All 33 focused tests pass. All 20 products in the local four-orbit test tree
   open successfully; selected fields in every orbit-0085 product match direct
   NetCDF reads. Opening the largest local detector orbit uses 61,764-KB peak
   RSS; reading one frame uses 102,064 KB.
