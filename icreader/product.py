@@ -135,6 +135,7 @@ class NetCDFProduct:
     DIMENSIONS = ()
     REQUIRED_ATTRIBUTES = ()
     VARIABLES = {}
+    OPTIONAL_VARIABLES = {}
 
     def __init__(self, filename):
         self.filename = str(filename)
@@ -205,7 +206,13 @@ class NetCDFProduct:
                 f"{self.PRODUCT_TYPE} is missing variables: {', '.join(missing)}"
             )
 
-        for name, (dimensions, _kind, _eager) in self.VARIABLES.items():
+        variables = dict(self.VARIABLES)
+        variables.update({
+            name: specification
+            for name, specification in self.OPTIONAL_VARIABLES.items()
+            if name in self._nc.variables
+        })
+        for name, (dimensions, _kind, _eager) in variables.items():
             variable = self._nc.variables[name]
             if variable.dimensions != dimensions:
                 raise ValueError(
@@ -227,7 +234,13 @@ class NetCDFProduct:
         self.fields = {}
         self.time_encoding = {}
         self.variable_attrs = {}
-        for name, (_dimensions, kind, eager) in self.VARIABLES.items():
+        variables = dict(self.VARIABLES)
+        variables.update({
+            name: specification
+            for name, specification in self.OPTIONAL_VARIABLES.items()
+            if name in self._nc.variables
+        })
+        for name, (_dimensions, kind, eager) in variables.items():
             variable = self._nc.variables[name]
             self.variable_attrs[name] = MappingProxyType({
                 attribute: variable.getncattr(attribute)
@@ -265,7 +278,10 @@ class NetCDFProduct:
         """Materialize one complete field or selection as a NumPy array."""
 
         variable = self._get_variable(name)
-        kind = self.VARIABLES.get(name, (None, "float", None))[1]
+        specification = self.VARIABLES.get(
+            name, self.OPTIONAL_VARIABLES.get(name)
+        )
+        kind = "float" if specification is None else specification[1]
         if kind == "time":
             if index is None:
                 return decode_time(variable)

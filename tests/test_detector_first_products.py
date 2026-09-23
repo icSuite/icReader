@@ -284,6 +284,60 @@ def test_detector_boolean_and_sliced_reads(tmp_path):
         assert product.kp_provenance["source"] == "test Kp"
 
 
+def test_fuv_detector_loads_optional_unsubtracted_fields_when_present(tmp_path):
+    filename = tmp_path / "fuv_detector.nc"
+    write_product(
+        filename, "fuv_detector", "detector", 2, icreader.FUVDetector
+    )
+
+    with Dataset(filename, "a") as nc:
+        dimensions = ("time", "row", "column")
+        for name, (_dimensions, kind, _eager) in (
+            icreader.FUVDetector.OPTIONAL_VARIABLES.items()
+        ):
+            dtype = "i1" if kind == "bool" else "f4"
+            variable = nc.createVariable(name, dtype, dimensions)
+            variable[:] = 1
+            if kind == "float":
+                variable.units = "counts"
+
+    with icreader.load(filename) as product:
+        assert product.wic_unsubtracted_counts.shape == product.shape
+        assert product.wic_unsubtracted_valid.dtype == np.dtype(bool)
+        assert product.read("wic_unsubtracted_valid").dtype == np.dtype(bool)
+        assert "wic_unsubtracted_counts" in product.fields
+        assert "wic_unsubtracted_valid" in product.variable_attrs
+
+
+def test_detector_optional_fields_and_count_source_are_backward_compatible(
+    tmp_path,
+):
+    fuv_filename = tmp_path / "fuv_detector.nc"
+    write_product(
+        fuv_filename, "fuv_detector", "detector", 2, icreader.FUVDetector
+    )
+    with icreader.load(fuv_filename) as product:
+        assert not hasattr(product, "wic_unsubtracted_counts")
+
+    precipitation_filename = tmp_path / "precipitation_detector.nc"
+    write_product(
+        precipitation_filename,
+        "precipitation_detector",
+        "detector",
+        3,
+        icreader.PrecipitationDetector,
+    )
+    with icreader.load(precipitation_filename) as product:
+        assert product.count_source == "background_subtracted"
+
+    with Dataset(precipitation_filename, "a") as nc:
+        nc.count_source = "unsubtracted"
+        nc.method_quality_weight_method = "uniform test weight"
+    with icreader.load(precipitation_filename) as product:
+        assert product.count_source == "unsubtracted"
+        assert product.method_quality_weight_method == "uniform test weight"
+
+
 @pytest.mark.parametrize(
     "product_type,representation,schema,reader_class", PRODUCT_CASES
 )

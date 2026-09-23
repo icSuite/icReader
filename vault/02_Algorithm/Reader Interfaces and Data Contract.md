@@ -1,6 +1,6 @@
 # Reader Interfaces and Data Contract
 
-Last reviewed: 2026-09-20
+Last reviewed: 2026-09-23
 
 This note records the current high-level interface visible in the live branch.
 It does not claim that all published files or downstream call sites were
@@ -74,6 +74,19 @@ the context closes; reading array data after close remains an error.
 Detector geometry remains in its stored time-dependent `glat`, `glon`,
 `mlat`, `mlon`, and `mlt` fields. The reader does not regrid it.
 
+Schema-2 `fuv_detector` products may contain the optional fields
+`wic_unsubtracted_counts`, `si12_unsubtracted_counts`,
+`si13_unsubtracted_counts`, and their corresponding `*_unsubtracted_valid`
+masks. The reader exposes whichever complete fields are present as ordinary
+lazy `ProductField` objects. Their absence does not invalidate an older
+schema-2 file.
+
+Schema-3 `precipitation_detector` products expose `count_source` as either
+`background_subtracted` or `unsubtracted`, together with the recorded method
+used for `method_quality_weight`. Older schema-3 files without these additive
+attributes are read as `background_subtracted`, because no other count source
+existed when they were written.
+
 For CS products, `product.grid` is a reconstructed `secsy.CSgrid`. The reader
 uses the stored projection, radius, and explicit xi/eta edges together with
 the canonical metadata identified by `grid_id`. It validates only that the CS
@@ -131,7 +144,7 @@ while spline evaluation can accept native, Apex, or geographic coordinates.
 ## Verification boundary
 
 The legacy modular Product-1, Product-2, and Product-3 implementations and the
-five detector-first readers pass 34 focused tests.
+five detector-first readers pass 35 focused tests.
 Product 1 passed a temporary footprint-writer round trip on the current WIC
 grid, and Product 2 loaded a real 20-frame `icBuilder` Zhang-Paxton example.
 All 20 detector-first products in the local four-orbit pipeline test tree

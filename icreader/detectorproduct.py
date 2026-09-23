@@ -151,6 +151,25 @@ class FUVDetector(DetectorProduct):
             True,
         ),
     }
+    OPTIONAL_VARIABLES = {
+        **variable_specs(
+            (
+                "wic_unsubtracted_counts",
+                "si12_unsubtracted_counts",
+                "si13_unsubtracted_counts",
+            ),
+            IMAGE,
+        ),
+        **variable_specs(
+            (
+                "wic_unsubtracted_valid",
+                "si12_unsubtracted_valid",
+                "si13_unsubtracted_valid",
+            ),
+            IMAGE,
+            "bool",
+        ),
+    }
 
     def _finish_initialization(self):
         super()._finish_initialization()
@@ -205,6 +224,13 @@ class PrecipitationDetector(DetectorProduct):
 
     def _finish_initialization(self):
         super()._finish_initialization()
+        self.count_source = self.attrs.get(
+            "count_source", "background_subtracted"
+        )
+        self.method_quality_weight_method = self.attrs.get(
+            "method_quality_weight_method",
+            "product of Product-1 fuvpy dgweight fields",
+        )
         self.precipitation_method = self.method
         self.source_products = self.attributes_with_prefix("source_")
 

@@ -1,8 +1,8 @@
 # Current State
 
-Last reviewed: 2026-09-21
-Repository snapshot: `modular_pipeline` at `2324d6c` with an uncommitted
-public variable-metadata addition
+Last reviewed: 2026-09-23
+Repository snapshot: `modular_pipeline` at `5fb8841` with uncommitted detector
+count-source additions
 
 ## Current position
 
@@ -54,10 +54,16 @@ the root NetCDF `product_type` attribute.
 - CS readers reconstruct a `secsy.CSgrid` from stored projection, radius, and
   explicit edges, then validate only that the CS data and reconstructed grid
   are 46 by 46. Coordinate-hash enforcement has been removed.
-- All 33 focused tests pass. All 20 products in the local four-orbit test tree
+- All 35 focused tests pass. All 20 products in the local four-orbit test tree
   open successfully; selected fields in every orbit-0085 product match direct
   NetCDF reads. Opening the largest local detector orbit uses 61,764-KB peak
   RSS; reading one frame uses 102,064 KB.
+- Schema-2 `fuv_detector` files may add the three calibrated unsubtracted
+  count cubes and their three validity cubes. The reader exposes these lazily
+  when present and continues to open earlier schema-2 files without them.
+- Schema-3 `precipitation_detector` exposes `count_source` and
+  `method_quality_weight_method`. Files created before these attributes are
+  interpreted as `background_subtracted`, the only former implementation.
 
 ## Preserved interfaces
 
@@ -67,11 +73,10 @@ modular dispatcher.
 
 ## Next action
 
-Commit and push the public variable-metadata addition, then pin icBuilder to
-that exact revision. Afterward, use `ConductanceCS` as the reader boundary when
-the 46-by-46 corpus is introduced to icAnalyzer. Reader support does not
-resolve the separate Hardy-clipping, low-signal validity, or E0--Fe covariance
-decisions in the source products.
+Commit and push the detector count-source additions. Afterward, use
+`ConductanceCS` as the reader boundary when the 46-by-46 corpus is introduced
+to icAnalyzer. Reader support does not resolve the separate Hardy-clipping,
+low-signal validity, or E0--Fe covariance decisions in the source products.
 
 ## Known gaps
 
