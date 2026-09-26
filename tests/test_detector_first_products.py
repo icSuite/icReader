@@ -329,13 +329,66 @@ def test_detector_optional_fields_and_count_source_are_backward_compatible(
     )
     with icreader.load(precipitation_filename) as product:
         assert product.count_source == "background_subtracted"
+        assert product.spatial_smoothing_kernel == "none"
+        assert product.wic_smoothing_width_pixels == 0.0
+        assert product.si13_smoothing_width_pixels == 0.0
+        assert not hasattr(product, "wic_smoothed")
 
     with Dataset(precipitation_filename, "a") as nc:
         nc.count_source = "unsubtracted"
         nc.method_quality_weight_method = "uniform test weight"
+        nc.spatial_smoothing_kernel = "gaussian"
+        nc.wic_smoothing_width_pixels = 0.8
+        nc.si13_smoothing_width_pixels = 1.2
+        dimensions = ("time", "row", "column")
+        for name in icreader.PrecipitationDetector.OPTIONAL_VARIABLES:
+            variable = nc.createVariable(name, "f4", dimensions)
+            variable[:] = 1
+            variable.units = "counts"
     with icreader.load(precipitation_filename) as product:
         assert product.count_source == "unsubtracted"
         assert product.method_quality_weight_method == "uniform test weight"
+        assert product.spatial_smoothing_kernel == "gaussian"
+        assert product.wic_smoothing_width_pixels == 0.8
+        assert product.si13_smoothing_width_pixels == 1.2
+        assert product.si12.shape == product.shape
+        assert product.dsi12.units == "counts"
+        assert product.wic_smoothed.shape == product.shape
+        assert product.dsi13_smoothed.units == "counts"
+
+
+def test_precipitation_cs_loads_optional_si12_fields(tmp_path):
+    filename = tmp_path / "precipitation_cs.nc"
+    write_product(
+        filename,
+        "precipitation_cs",
+        "cs",
+        1,
+        icreader.PrecipitationCS,
+    )
+    with icreader.load(filename) as product:
+        assert not hasattr(product, "si12")
+        assert product.count_source == "background_subtracted"
+        assert product.spatial_smoothing_kernel == "none"
+
+    with Dataset(filename, "a") as nc:
+        nc.count_source = "unsubtracted"
+        nc.spatial_smoothing_kernel = "gaussian"
+        nc.wic_smoothing_width_pixels = 0.8
+        nc.si13_smoothing_width_pixels = 1.2
+        dimensions = ("time", "dim1", "dim2")
+        for name in ("si12", "dsi12"):
+            variable = nc.createVariable(name, "f4", dimensions)
+            variable[:] = 1
+            variable.units = "counts"
+
+    with icreader.load(filename) as product:
+        assert product.si12.shape == product.shape
+        assert product.dsi12.units == "counts"
+        assert product.count_source == "unsubtracted"
+        assert product.spatial_smoothing_kernel == "gaussian"
+        assert product.wic_smoothing_width_pixels == 0.8
+        assert product.si13_smoothing_width_pixels == 1.2
 
 
 @pytest.mark.parametrize(

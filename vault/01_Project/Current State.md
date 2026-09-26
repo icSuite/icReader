@@ -1,6 +1,6 @@
 # Current State
 
-Last reviewed: 2026-09-23
+Last reviewed: 2026-09-25
 Repository snapshot: `modular_pipeline` at `5fb8841` with uncommitted detector
 count-source additions
 
@@ -64,6 +64,19 @@ the root NetCDF `product_type` attribute.
 - Schema-3 `precipitation_detector` exposes `count_source` and
   `method_quality_weight_method`. Files created before these attributes are
   interpreted as `background_subtracted`, the only former implementation.
+- Schema-3 `precipitation_detector` optionally exposes lazy pre-proton
+  `wic_smoothed`, `dwic_smoothed`, `si13_smoothed`, and `dsi13_smoothed`
+  fields. Smoothing kernel and WIC/SI13 widths are available as public
+  metadata; earlier files default to no smoothing and zero widths.
+- Detector Product 2 and `precipitation_cs` optionally expose lazy `si12` and
+  `dsi12` fields. CS readers also expose count-source and smoothing provenance.
+  This places corrected WIC, corrected SI13, and the SI12 proton channel in one
+  fixed-grid reader product while keeping old files readable.
+- The real orbit-0085 Gaussian diagnostic at WIC/SI13 sigmas 0.8/1.2 opens
+  successfully and reads individual smoothed frames without loading the full
+  cubes. A real 122-frame precipitation CS file also reads all three camera
+  fields and uncertainties. All 26 detector-first tests and all 36 repository
+  tests pass.
 
 ## Preserved interfaces
 
@@ -73,7 +86,7 @@ modular dispatcher.
 
 ## Next action
 
-Commit and push the detector count-source additions. Afterward, use
+Commit and push the detector count-source and optional smoothing additions. Afterward, use
 `ConductanceCS` as the reader boundary when the 46-by-46 corpus is introduced
 to icAnalyzer. Reader support does not resolve the separate Hardy-clipping,
 low-signal validity, or E0--Fe covariance decisions in the source products.

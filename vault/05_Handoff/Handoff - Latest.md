@@ -1,8 +1,50 @@
 # Handoff - Latest
 
-Last updated: 2026-09-23
+Last updated: 2026-09-25
 Repository snapshot: `modular_pipeline` at `5fb8841` with uncommitted detector
 count-source additions
+
+## Latest checkpoint: SI12 available in detector and CS precipitation
+
+Schema-3 `precipitation_detector` and schema-1 `precipitation_cs` may now add
+lazy `si12` and `dsi12` fields. They represent the SI12 counts and measurement
+uncertainty on common precipitation-method support. Precipitation CS also
+exposes count-source and smoothing provenance, allowing corrected WIC,
+corrected SI13, and SI12 to be consumed together without opening Product 1.
+Older files remain readable without the additive fields.
+
+All 26 detector-first tests and all 36 repository tests pass. A real
+122-frame orbit-0085 Gaussian product completed through CS reduction; its
+13-MB precipitation CS file exposes all three camera fields and uncertainties
+lazily.
+
+## Portfolio impact
+
+- Central update needed: Yes
+- `precipitation_cs` now satisfies icAnalyzer's corrected-camera input. It does
+  not provide pre-proton WIC or independent channel support.
+- Consumers must not apply SI12 proton correction to `wic_corrected` again.
+
+## Latest checkpoint: optional Product-2 smoothing fields supported
+
+Schema-3 `precipitation_detector` may now add four lazy pre-proton diagnostic
+fields: `wic_smoothed`, `dwic_smoothed`, `si13_smoothed`, and
+`dsi13_smoothed`. The reader also exposes the smoothing kernel and WIC/SI13
+widths, defaulting older files to `none` and zero. This is additive and does
+not invalidate existing unsmoothed products.
+
+All 25 detector-first tests and all 35 repository tests pass. The real
+icBuilder orbit-0085 Gaussian
+diagnostic at WIC/SI13 sigmas 0.8/1.2 opens successfully and reads one frame
+from each smoothed field lazily.
+
+## Portfolio impact
+
+- Central update needed: No
+- The public reader remains backward compatible with prior schema-3 files.
+- Next technical action: use the optional fields for the three-orbit smoothing
+  comparison; do not treat diagnostic Product-2 smoothing as final production
+  preprocessing.
 
 ## Latest checkpoint: unsubtracted detector counts supported
 

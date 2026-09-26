@@ -1,6 +1,6 @@
 # Reader Interfaces and Data Contract
 
-Last reviewed: 2026-09-23
+Last reviewed: 2026-09-25
 
 This note records the current high-level interface visible in the live branch.
 It does not claim that all published files or downstream call sites were
@@ -87,6 +87,27 @@ used for `method_quality_weight`. Older schema-3 files without these additive
 attributes are read as `background_subtracted`, because no other count source
 existed when they were written.
 
+Schema-3 `precipitation_detector` products may also contain the optional lazy
+fields `wic_smoothed`, `dwic_smoothed`, `si13_smoothed`, and
+`dsi13_smoothed`. They are pre-proton Product-2 diagnostic inputs. The reader
+exposes `spatial_smoothing_kernel`, `wic_smoothing_width_pixels`, and
+`si13_smoothing_width_pixels`; earlier files default to `none`, `0`, and `0`.
+Their absence remains valid and does not change the unsmoothed contract.
+
+New detector Product-2 files also add optional lazy `si12` and `dsi12` fields.
+These are the mapped SI12 counts and measurement uncertainty on the common
+method support actually supplied to proton correction. They accompany the
+required proton-corrected WIC and SI13 fields. Earlier schema-3 products remain
+readable without them.
+
+New `precipitation_cs` files carry the same `si12` and `dsi12` fields through
+the fixed-grid overlap reduction. The reader also exposes `count_source`,
+`spatial_smoothing_kernel`, `wic_smoothing_width_pixels`, and
+`si13_smoothing_width_pixels`, with backward-compatible unsmoothed defaults.
+Together with `wic_corrected` and `si13_corrected`, these provide the three
+camera fields requested by corrected-camera analysis without opening Product
+1. Corrected WIC must not receive the SI12 proton correction a second time.
+
 For CS products, `product.grid` is a reconstructed `secsy.CSgrid`. The reader
 uses the stored projection, radius, and explicit xi/eta edges together with
 the canonical metadata identified by `grid_id`. It validates only that the CS
@@ -144,7 +165,9 @@ while spline evaluation can accept native, Apex, or geographic coordinates.
 ## Verification boundary
 
 The legacy modular Product-1, Product-2, and Product-3 implementations and the
-five detector-first readers pass 35 focused tests.
+five detector-first readers pass their focused tests. The detector-first file
+contains 26 passing tests, including optional Product-2 smoothing and SI12
+fields; all 36 repository tests pass.
 Product 1 passed a temporary footprint-writer round trip on the current WIC
 grid, and Product 2 loaded a real 20-frame `icBuilder` Zhang-Paxton example.
 All 20 detector-first products in the local four-orbit pipeline test tree

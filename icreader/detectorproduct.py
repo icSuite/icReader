@@ -221,6 +221,14 @@ class PrecipitationDetector(DetectorProduct):
         **variable_specs(_BOOL_FIELDS, IMAGE, "bool"),
         **variable_specs(_COUNT_FIELDS, IMAGE, "int"),
     }
+    OPTIONAL_VARIABLES = variable_specs(
+        (
+            "si12", "dsi12",
+            "wic_smoothed", "dwic_smoothed",
+            "si13_smoothed", "dsi13_smoothed",
+        ),
+        IMAGE,
+    )
 
     def _finish_initialization(self):
         super()._finish_initialization()
@@ -230,6 +238,15 @@ class PrecipitationDetector(DetectorProduct):
         self.method_quality_weight_method = self.attrs.get(
             "method_quality_weight_method",
             "product of Product-1 fuvpy dgweight fields",
+        )
+        self.spatial_smoothing_kernel = self.attrs.get(
+            "spatial_smoothing_kernel", "none"
+        )
+        self.wic_smoothing_width_pixels = float(
+            self.attrs.get("wic_smoothing_width_pixels", 0.0)
+        )
+        self.si13_smoothing_width_pixels = float(
+            self.attrs.get("si13_smoothing_width_pixels", 0.0)
         )
         self.precipitation_method = self.method
         self.source_products = self.attributes_with_prefix("source_")

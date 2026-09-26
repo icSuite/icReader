@@ -246,9 +246,22 @@ class PrecipitationCS(CSProduct):
         **variable_specs(_COUNT_FIELDS, IMAGE, "int"),
         **variable_specs(_BOOL_FIELDS, IMAGE, "bool"),
     }
+    OPTIONAL_VARIABLES = variable_specs(("si12", "dsi12"), IMAGE)
 
     def _finish_initialization(self):
         super()._finish_initialization()
+        self.count_source = self.attrs.get(
+            "count_source", "background_subtracted"
+        )
+        self.spatial_smoothing_kernel = self.attrs.get(
+            "spatial_smoothing_kernel", "none"
+        )
+        self.wic_smoothing_width_pixels = float(
+            self.attrs.get("wic_smoothing_width_pixels", 0.0)
+        )
+        self.si13_smoothing_width_pixels = float(
+            self.attrs.get("si13_smoothing_width_pixels", 0.0)
+        )
         self.precipitation_method = self.method
 
 
