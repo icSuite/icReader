@@ -94,6 +94,30 @@ def attribute_value(name):
     return values.get(name, f"test {name}")
 
 
+def write_smoothing_metadata(nc):
+    """Write the required current smoothing and quality provenance."""
+
+    metadata = {
+        "count_source": "background_subtracted",
+        "method_quality_weight_method": "three-sensor product",
+        "smoothed": np.int8(1),
+        "smoothing_method": "gaussian",
+        "wic_smoothing_width_pixels": 0.8,
+        "si12_smoothing_width_pixels": 0.0,
+        "si13_smoothing_width_pixels": 1.2,
+        "wic_smoothing_applied": np.int8(1),
+        "si12_smoothing_applied": np.int8(0),
+        "si13_smoothing_applied": np.int8(1),
+        "smoothing_width_definition": "Gaussian sigma in WIC pixels",
+        "smoothing_operation_order": "before proton correction",
+        "smoothing_variance_method": "squared normalized weights",
+        "method_quality_weight_floor": 1e-6,
+        "method_quality_weight_spatial_propagation": "geometric product",
+    }
+    for name, value in metadata.items():
+        nc.setncattr(name, value)
+
+
 def write_variables(nc, reader_class):
     """Write variables matching one reader's explicit schema manifest."""
 
@@ -357,6 +381,72 @@ def test_detector_optional_fields_and_count_source_are_backward_compatible(
         assert product.dsi13_smoothed.units == "counts"
 
 
+def test_schema4_precipitation_detector_exposes_optional_gaussian_smoothing(
+    tmp_path,
+):
+    filename = tmp_path / "precipitation_detector_schema4.nc"
+    write_product(
+        filename,
+        "precipitation_detector",
+        "detector",
+        4,
+        icreader.PrecipitationDetector,
+    )
+    with Dataset(filename, "a") as nc:
+        write_smoothing_metadata(nc)
+        dimensions = ("time", "row", "column")
+        for name in (
+            "si12", "dsi12", "wic_smoothed", "dwic_smoothed",
+            "si13_smoothed", "dsi13_smoothed",
+        ):
+            variable = nc.createVariable(name, "f4", dimensions)
+            variable[:] = 1
+            variable.units = "counts"
+
+    with icreader.load(filename) as product:
+        assert product.schema_version == 4
+        assert product.smoothed
+        assert product.smoothing_method == "gaussian"
+        assert product.wic_smoothing_applied
+        assert not product.si12_smoothing_applied
+        assert product.si13_smoothing_applied
+        assert product.si12_smoothing_width_pixels == 0
+        assert not hasattr(product, "wic_quality_weight")
+        assert product.method_quality_weight_floor == 1e-6
+        assert product.wic_smoothed.shape == product.shape
+
+
+@pytest.mark.parametrize(
+    "product_type,representation,schema,reader_class",
+    (
+        (
+            "conductance_detector", "detector", 3,
+            icreader.ConductanceDetector,
+        ),
+        ("conductance_cs", "cs", 2, icreader.ConductanceCS),
+    ),
+)
+def test_current_conductance_products_expose_product2_preprocessing(
+    tmp_path, product_type, representation, schema, reader_class
+):
+    filename = tmp_path / f"{product_type}.nc"
+    write_product(filename, product_type, representation, schema, reader_class)
+    with Dataset(filename, "a") as nc:
+        write_smoothing_metadata(nc)
+
+    with icreader.load(filename) as product:
+        assert product.schema_version == schema
+        assert product.count_source == "background_subtracted"
+        assert product.smoothed
+        assert product.smoothing_method == "gaussian"
+        assert product.wic_smoothing_applied
+        assert not product.si12_smoothing_applied
+        assert product.si13_smoothing_applied
+        assert product.method_quality_weight_floor == 1e-6
+        assert product.method_quality_weight_method == "three-sensor product"
+        assert product.smoothing_operation_order == "before proton correction"
+
+
 def test_precipitation_cs_loads_optional_si12_fields(tmp_path):
     filename = tmp_path / "precipitation_cs.nc"
     write_product(
@@ -401,7 +491,12 @@ def test_rejects_wrong_representation_or_schema(
     write_product(filename, product_type, representation, schema, reader_class)
 
     with Dataset(filename, "a") as nc:
-        nc.schema_version = schema + 1
+        unsupported = {
+            "precipitation_detector": 5,
+            "conductance_detector": 4,
+            "conductance_cs": 3,
+        }.get(product_type, schema + 1)
+        nc.schema_version = unsupported
     with pytest.raises(ValueError, match="unsupported .* schema_version"):
         icreader.load(filename)
 
@@ -438,7 +533,10 @@ def test_cs_reader_reconstructs_46_by_46_secsy_grid(tmp_path, reader_class):
 def test_real_orbit_0085_matches_direct_netcdf(filename, reader_class, fields):
     with icreader.load(filename) as product, Dataset(filename) as nc:
         assert isinstance(product, reader_class)
-        assert set(product.VARIABLES) == set(nc.variables)
+        declared = set(product.VARIABLES) | {
+            name for name in product.OPTIONAL_VARIABLES if name in nc.variables
+        }
+        assert declared == set(nc.variables)
         for field in fields:
             for frame in (0, product.nt // 2, product.nt - 1):
                 direct = nc.variables[field][frame]

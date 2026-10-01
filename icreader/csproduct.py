@@ -253,14 +253,43 @@ class PrecipitationCS(CSProduct):
         self.count_source = self.attrs.get(
             "count_source", "background_subtracted"
         )
-        self.spatial_smoothing_kernel = self.attrs.get(
-            "spatial_smoothing_kernel", "none"
+        legacy_smoothed = (
+            self.attrs.get("spatial_smoothing_kernel", "none") != "none"
         )
+        self.smoothed = bool(int(
+            self.attrs.get("smoothed", legacy_smoothed)
+        ))
+        self.smoothing_method = self.attrs.get(
+            "smoothing_method",
+            self.attrs.get("spatial_smoothing_kernel", "none"),
+        )
+        self.spatial_smoothing_kernel = self.smoothing_method
         self.wic_smoothing_width_pixels = float(
             self.attrs.get("wic_smoothing_width_pixels", 0.0)
         )
+        self.si12_smoothing_width_pixels = float(
+            self.attrs.get("si12_smoothing_width_pixels", 0.0)
+        )
         self.si13_smoothing_width_pixels = float(
             self.attrs.get("si13_smoothing_width_pixels", 0.0)
+        )
+        for sensor in ("wic", "si12", "si13"):
+            width = getattr(self, f"{sensor}_smoothing_width_pixels")
+            setattr(
+                self,
+                f"{sensor}_smoothing_applied",
+                bool(int(self.attrs.get(
+                    f"{sensor}_smoothing_applied", width > 0
+                ))),
+            )
+        self.method_quality_weight_method = self.attrs.get(
+            "method_quality_weight_method", "unrecorded"
+        )
+        self.method_quality_weight_floor = float(
+            self.attrs.get("method_quality_weight_floor", 0.0)
+        )
+        self.method_quality_weight_spatial_propagation = self.attrs.get(
+            "method_quality_weight_spatial_propagation", "none"
         )
         self.precipitation_method = self.method
 
@@ -268,9 +297,11 @@ class PrecipitationCS(CSProduct):
 #%% CS Product 3
 
 class ConductanceCS(CSProduct):
-    """Read schema-1 detector-derived conductance on the frozen CS grid."""
+    """Read schema-1 or schema-2 detector-derived conductance on the CS grid."""
 
     PRODUCT_TYPE = "conductance_cs"
+    SCHEMA_VERSION = 2
+    SUPPORTED_SCHEMA_VERSIONS = (1, 2)
     REQUIRED_ATTRIBUTES = CSProduct.REQUIRED_ATTRIBUTES + (
         "conductance_model", "conductance_uncertainty_method",
         "precipitation_method", "proton_flux_source", "proton_energy_model",
@@ -300,3 +331,102 @@ class ConductanceCS(CSProduct):
         **variable_specs(_COUNT_FIELDS, IMAGE, "int"),
         **variable_specs(_BOOL_FIELDS, IMAGE, "bool"),
     }
+
+    def _validate_descriptor(self):
+        """Accept the legacy and current CS Product-3 schemas."""
+
+        nc = self._nc
+        if "product_type" not in nc.ncattrs():
+            raise ValueError("NetCDF file has no product_type descriptor")
+        if nc.product_type != self.PRODUCT_TYPE:
+            raise ValueError(
+                f"expected product_type '{self.PRODUCT_TYPE}', "
+                f"got '{nc.product_type}'"
+            )
+        if "representation" not in nc.ncattrs():
+            raise ValueError(
+                f"{self.PRODUCT_TYPE} has no representation descriptor"
+            )
+        if nc.representation != self.REPRESENTATION:
+            raise ValueError(
+                f"expected {self.PRODUCT_TYPE} representation "
+                f"'{self.REPRESENTATION}', got '{nc.representation}'"
+            )
+        if "schema_version" not in nc.ncattrs():
+            raise ValueError(
+                f"{self.PRODUCT_TYPE} has no schema_version descriptor"
+            )
+        if int(nc.schema_version) not in self.SUPPORTED_SCHEMA_VERSIONS:
+            raise ValueError(
+                f"unsupported {self.PRODUCT_TYPE} schema_version "
+                f"{nc.schema_version}; expected one of "
+                f"{self.SUPPORTED_SCHEMA_VERSIONS}"
+            )
+
+    def _validate_attributes(self):
+        super()._validate_attributes()
+        if int(self._nc.schema_version) != 2:
+            return
+        required = (
+            "count_source", "smoothed", "smoothing_method",
+            "wic_smoothing_width_pixels", "si12_smoothing_width_pixels",
+            "si13_smoothing_width_pixels", "wic_smoothing_applied",
+            "si12_smoothing_applied", "si13_smoothing_applied",
+            "smoothing_width_definition", "smoothing_operation_order",
+            "smoothing_variance_method", "method_quality_weight_method",
+            "method_quality_weight_floor",
+            "method_quality_weight_spatial_propagation",
+        )
+        missing = [name for name in required if name not in self._nc.ncattrs()]
+        if missing:
+            raise ValueError(
+                f"{self.PRODUCT_TYPE} is missing attributes: "
+                f"{', '.join(missing)}"
+            )
+
+    def _finish_initialization(self):
+        super()._finish_initialization()
+        self.count_source = self.attrs.get(
+            "count_source", "background_subtracted"
+        )
+        legacy_smoothed = (
+            self.attrs.get("spatial_smoothing_kernel", "none") != "none"
+        )
+        self.smoothed = bool(int(
+            self.attrs.get("smoothed", legacy_smoothed)
+        ))
+        self.smoothing_method = self.attrs.get(
+            "smoothing_method",
+            self.attrs.get("spatial_smoothing_kernel", "none"),
+        )
+        self.spatial_smoothing_kernel = self.smoothing_method
+        for sensor in ("wic", "si12", "si13"):
+            width = float(self.attrs.get(
+                f"{sensor}_smoothing_width_pixels", 0.0
+            ))
+            setattr(self, f"{sensor}_smoothing_width_pixels", width)
+            setattr(
+                self,
+                f"{sensor}_smoothing_applied",
+                bool(int(self.attrs.get(
+                    f"{sensor}_smoothing_applied", width > 0
+                ))),
+            )
+        self.smoothing_width_definition = self.attrs.get(
+            "smoothing_width_definition", "unrecorded"
+        )
+        self.smoothing_operation_order = self.attrs.get(
+            "smoothing_operation_order", "unrecorded"
+        )
+        self.smoothing_variance_method = self.attrs.get(
+            "smoothing_variance_method", "unrecorded"
+        )
+        self.method_quality_weight_method = self.attrs.get(
+            "method_quality_weight_method", "unrecorded"
+        )
+        self.method_quality_weight_floor = float(
+            self.attrs.get("method_quality_weight_floor", 0.0)
+        )
+        self.method_quality_weight_spatial_propagation = self.attrs.get(
+            "method_quality_weight_spatial_propagation", "none"
+        )
