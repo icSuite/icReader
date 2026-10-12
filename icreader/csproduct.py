@@ -77,6 +77,10 @@ class CSProduct(NetCDFProduct):
         for name in self.REQUIRED_ATTRIBUTES:
             setattr(self, name, self.attrs[name])
 
+        for name, value in self.attrs.items():
+            if name.startswith("electron_"):
+                setattr(self, name, value)
+
         if self.attrs.get("proton_energy_model") == "constant":
             for name in (
                 "proton_energy_constant",
@@ -246,7 +250,10 @@ class PrecipitationCS(CSProduct):
         **variable_specs(_COUNT_FIELDS, IMAGE, "int"),
         **variable_specs(_BOOL_FIELDS, IMAGE, "bool"),
     }
-    OPTIONAL_VARIABLES = variable_specs(("si12", "dsi12"), IMAGE)
+    OPTIONAL_VARIABLES = {
+        **variable_specs(("si12", "dsi12", "E0_response_range_fraction"), IMAGE),
+        **variable_specs(("E0_response_range_any",), IMAGE, "bool")
+    }
 
     def _finish_initialization(self):
         super()._finish_initialization()
@@ -330,6 +337,10 @@ class ConductanceCS(CSProduct):
         **variable_specs(_FLOAT_FIELDS, IMAGE),
         **variable_specs(_COUNT_FIELDS, IMAGE, "int"),
         **variable_specs(_BOOL_FIELDS, IMAGE, "bool"),
+    }
+    OPTIONAL_VARIABLES = {
+        **variable_specs(("E0_response_range_fraction",), IMAGE),
+        **variable_specs(("E0_response_range_any",), IMAGE, "bool")
     }
 
     def _validate_descriptor(self):

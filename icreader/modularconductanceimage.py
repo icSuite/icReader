@@ -24,6 +24,9 @@ class ModularConductanceImage:
             self.product_type = nc.product_type
             self.schema_version = int(nc.schema_version)
             self.precipitation_method = str(nc.precipitation_method)
+            for name in nc.ncattrs():
+                if name.startswith("electron_"):
+                    setattr(self, name, nc.getncattr(name))
             self.proton_flux_source = str(nc.proton_flux_source)
             self.proton_energy_model = str(nc.proton_energy_model)
             self.proton_energy_uncertainty_method = str(
@@ -87,6 +90,8 @@ class ModularConductanceImage:
             self.Ep_clipping_flag = np.asarray(
                 nc.variables["Ep_clipping_flag"][:], dtype=bool
             )
+            if "E0_response_range_flag" in nc.variables:
+                self.E0_response_range_flag = np.asarray(nc.variables["E0_response_range_flag"][:].filled(-1), dtype=np.int8)
 
             self.grid = load_grid(nc)
 
@@ -94,7 +99,10 @@ class ModularConductanceImage:
         if len(self.shape) != 3:
             raise ValueError("conductance image fields must be three-dimensional")
 
-        for name in (*field_names, "Ep_clipping_flag"):
+        image_fields = [*field_names, "Ep_clipping_flag"]
+        if hasattr(self, "E0_response_range_flag"):
+            image_fields.append("E0_response_range_flag")
+        for name in image_fields:
             if getattr(self, name).shape != self.shape:
                 raise ValueError(
                     f"{name} does not match the conductance image dimensions"

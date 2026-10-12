@@ -551,3 +551,50 @@ def test_real_orbit_0085_matches_direct_netcdf(filename, reader_class, fields):
             group = nc.groups["grid"]
             np.testing.assert_array_equal(product.grid.xi, group.variables["xi"][:])
             np.testing.assert_array_equal(product.grid.eta, group.variables["eta"][:])
+
+
+@pytest.mark.parametrize("product_type,representation,schema,reader_class", PRODUCT_CASES[1:])
+def test_hardy_products_preserve_conditional_uncertainty_and_response_flags(tmp_path, product_type, representation, schema, reader_class):
+    filename = tmp_path / f"{product_type}_hardy.nc"
+    write_product(filename, product_type, representation, schema, reader_class)
+    dimensions = ("time", "row", "column") if representation == "detector" else ("time", "dim1", "dim2")
+    flag_name = "E0_response_range_flag" if representation == "detector" else "E0_response_range_any"
+    with Dataset(filename, "a") as nc:
+        method_name = "method" if product_type.startswith("precipitation") else "precipitation_method"
+        nc.setncattr(method_name, "hardy")
+        nc.electron_energy_model = "hardy"
+        nc.electron_energy_uncertainty_method = "measurement propagation conditional on fixed Hardy energy; model uncertainty excluded"
+        nc.electron_response_energy_min = 0.2
+        nc.electron_response_energy_max = 25.0
+        shape = tuple(len(nc.dimensions[name]) for name in dimensions)
+        flags = np.zeros(shape, dtype=np.int8)
+        flags[0] = 1
+        if representation == "detector":
+            flags.reshape(-1)[0:3] = [-1, 0, 2]
+        variable = nc.createVariable(flag_name, "i1", dimensions)
+        variable.flag_meanings = "unavailable within_response_domain below_response_domain above_response_domain" if representation == "detector" else "within_response_domain outside_response_domain"
+        variable[:] = flags
+        if representation == "cs":
+            variable = nc.createVariable("E0_response_range_fraction", "f4", dimensions)
+            variable[:] = flags * 0.25
+
+    with icreader.load(filename) as product:
+        assert product.precipitation_method == "hardy"
+        assert product.proton_energy_model == "hardy"
+        assert "model uncertainty excluded" in product.electron_energy_uncertainty_method
+        assert product.electron_response_energy_min == pytest.approx(0.2)
+        assert isinstance(getattr(product, flag_name), ProductField)
+        np.testing.assert_array_equal(product.read(flag_name), flags if representation == "detector" else flags.astype(bool))
+        assert "response_domain" in getattr(product, flag_name).attrs["flag_meanings"]
+        if representation == "cs":
+            np.testing.assert_array_equal(product.read("E0_response_range_fraction"), flags * 0.25)
+
+
+def test_hardy_optional_range_flag_rejects_wrong_dimensions(tmp_path):
+    filename = tmp_path / "invalid_hardy.nc"
+    write_product(filename, "precipitation_detector", "detector", 3, icreader.PrecipitationDetector)
+    with Dataset(filename, "a") as nc:
+        nc.method = "hardy"
+        nc.createVariable("E0_response_range_flag", "i1", ("time",))[:] = 0
+    with pytest.raises(ValueError, match="E0_response_range_flag"):
+        icreader.load(filename)

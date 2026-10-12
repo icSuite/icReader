@@ -42,6 +42,14 @@ with icreader.load("or_0085.nc") as product:
 `numpy.asarray(product.H)` materializes the complete variable. Use the context
 manager so the underlying NetCDF file is closed deterministically.
 
+Hardy electron products expose their `electron_*` provenance and conditional
+uncertainty interpretation. Detector and bin-first products additionally expose
+`E0_response_range_flag`: -1 unavailable, 0 within the WIC response domain,
+1 below and 2 above. CS products expose `E0_response_range_fraction` and
+`E0_response_range_any`. These additive fields are optional for older products;
+detector/CS fields retain lazy access. Hardy electron energy and Hardy proton
+energy are separate processing choices.
+
 The older eager modular, direct-conductance, and spline readers remain
 available. See [`scripts/test_load.py`](scripts/test_load.py) for a legacy
 example.

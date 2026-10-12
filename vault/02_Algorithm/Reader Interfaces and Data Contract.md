@@ -1,6 +1,6 @@
 # Reader Interfaces and Data Contract
 
-Last reviewed: 2026-09-25
+Last reviewed: 2026-10-11 (Hardy additive interface)
 
 This note records the current high-level interface visible in the live branch.
 It does not claim that all published files or downstream call sites were
@@ -53,7 +53,7 @@ The same dispatcher now recognizes five exact detector-first contracts:
 | Product type | Representation | Schema | Reader |
 | --- | --- | ---: | --- |
 | `fuv_detector` | `detector` | 2 | `FUVDetector` |
-| `precipitation_detector` | `detector` | 3 | `PrecipitationDetector` |
+| `precipitation_detector` | `detector` | 3 and 4 | `PrecipitationDetector` |
 | `conductance_detector` | `detector` | 2 | `ConductanceDetector` |
 | `precipitation_cs` | `cs` | 1 | `PrecipitationCS` |
 | `conductance_cs` | `cs` | 1 | `ConductanceCS` |
@@ -100,6 +100,26 @@ method support actually supplied to proton correction. They accompany the
 required proton-corrected WIC and SI13 fields. Earlier schema-3 products remain
 readable without them.
 
+Schema-4 `precipitation_detector` makes optional fixed Gaussian smoothing a
+new explicit contract rather than an additive schema-3 interpretation. It
+requires `smoothed`, `smoothing_method`, the WIC/SI12/SI13 effective widths
+and applied flags, processing-order and variance metadata, and the Tukey
+quality floor and geometric-propagation description. `si12` and `dsi12` are
+required. A sensor marked as smoothed must provide its lazy smoothed count and
+uncertainty fields. Only `method_quality_weight` is required; the three
+individual source weights remain optional solely so legacy schema-3 files can
+still be inspected. The reader accepts schemas 3 and 4 explicitly and does
+not infer new defaults for schema 3.
+
+Schema-3 `conductance_detector` carries the schema-4 Product-2 preprocessing
+contract forward with the unchanged `method_quality_weight`: count source,
+global smoothing request, Gaussian method, three effective widths and applied
+flags, processing order, variance rule, and Tukey-weight method/floor/spatial
+propagation. Schema-2 `conductance_cs` carries the same metadata through the
+fixed-grid representation. The readers explicitly accept legacy detector
+Product-3 schema 2 and Product-3-CS schema 1 with unsmoothed/unrecorded
+fallbacks; they require the complete metadata in the current schemas.
+
 New `precipitation_cs` files carry the same `si12` and `dsi12` fields through
 the fixed-grid overlap reduction. The reader also exposes `count_source`,
 `spatial_smoothing_kernel`, `wic_smoothing_width_pixels`, and
@@ -122,6 +142,26 @@ icBuilder now uses these detector and CS readers for Product-2/Product-3
 construction, paired CS reduction, and restart validation. Complete-orbit
 calculations materialize each needed cube once; restart checks use validated
 metadata without decompressing full detector arrays.
+
+## Optional Hardy electron fields
+
+Detector, CS and bin-first Product 2/3 expose serialized `electron_*`
+attributes, including model/source/coefficient identity, Kp policy, model
+and response domains, coordinate approximation and uncertainty interpretation.
+Fields are additive and optional; existing schemas and older files are valid.
+
+Detector and bin-first `E0_response_range_flag` preserves signed integer
+codes: -1 unavailable, 0 within 0.2–25 keV,1 below, 2 above. Missing integer
+entries fill-1 rather than becoming Boolean. Detector access remains lazy.
+Both CS products expose optional lazy `E0_response_range_fraction`(float)
+and `E0_response_range_any`(Boolean). They describe valid overlap support;
+the reader does not recalculate flags or clip raw energy.
+
+Full suite 46 tests passes, including all optional product families, lazy
+access, signed flag preservation and malformed dimensions. The four real
+122-frame orbit 0085 Hardy detector/CS outputs opened successfully. Reader
+support does not imply scientific acceptance of the endpoint response policy
+or the fixed-energy conditional measurement uncertainty.
 
 ## Direct conductance products
 

@@ -54,6 +54,9 @@ class PrecipitationImage:
             self.schema_version = int(nc.schema_version)
             self.method = str(nc.method)
             self.precipitation_method = self.method
+            for name in nc.ncattrs():
+                if name.startswith("electron_"):
+                    setattr(self, name, nc.getncattr(name))
             self.proton_flux_source = str(nc.proton_flux_source)
             self.proton_energy_model = str(nc.proton_energy_model)
             self.proton_energy_uncertainty_method = str(
@@ -137,6 +140,8 @@ class PrecipitationImage:
             self.Ep_clipping_flag = np.asarray(
                 nc.variables["Ep_clipping_flag"][:], dtype=bool
             )
+            if "E0_response_range_flag" in nc.variables:
+                self.E0_response_range_flag = np.asarray(nc.variables["E0_response_range_flag"][:].filled(-1), dtype=np.int8)
 
             # These fields depend on the selected precipitation method/schema.
             for name in ("w", "R", "dR"):
@@ -151,6 +156,8 @@ class PrecipitationImage:
             raise ValueError("precipitation image fields must be three-dimensional")
 
         image_fields = list(field_names) + ["Ep_clipping_flag"]
+        if hasattr(self, "E0_response_range_flag"):
+            image_fields.append("E0_response_range_flag")
         image_fields += [name for name in ("w", "R", "dR") if hasattr(self, name)]
         for name in image_fields:
             if getattr(self, name).shape != self.shape:

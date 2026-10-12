@@ -411,3 +411,25 @@ def test_binned_loader_rejects_an_unknown_schema(tmp_path):
 
     with pytest.raises(ValueError, match="unsupported binned_fuv schema_version 2"):
         icreader.load(filename)
+
+
+@pytest.mark.parametrize("product_type", ("precipitation", "conductance"))
+def test_bin_first_hardy_provenance_and_response_flags(tmp_path, product_type):
+    filename = tmp_path / f"{product_type}_hardy.nc"
+    if product_type == "precipitation":
+        write_precipitation_product(filename, include_ratio=False)
+    else:
+        write_conductance_product(filename)
+    with Dataset(filename, "a") as nc:
+        nc.setncattr("method" if product_type == "precipitation" else "precipitation_method", "hardy")
+        nc.electron_energy_model = "hardy"
+        nc.electron_energy_uncertainty_method = "conditional on fixed Hardy energy"
+        flags = nc.createVariable("E0_response_range_flag", "i1", ("time", "dim1", "dim2"))
+        flags[:] = 1
+    product = icreader.load(filename)
+    assert product.precipitation_method == "hardy"
+    assert product.electron_energy_model == "hardy"
+    assert product.electron_energy_uncertainty_method == "conditional on fixed Hardy energy"
+    assert product.E0_response_range_flag.dtype == np.int8
+    assert product.E0_response_range_flag.shape == product.shape
+    assert product.E0_response_range_flag.all()

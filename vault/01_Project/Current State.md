@@ -1,8 +1,24 @@
 # Current State
 
-Last reviewed: 2026-09-25
-Repository snapshot: `modular_pipeline` at `5fb8841` with uncommitted detector
-count-source additions
+Last reviewed: 2026-10-11 (Hardy additive compatibility)
+Repository snapshot: `modular_pipeline` at `8f8e7d1`; reader/test/docs and
+pre-existing memory work are uncommitted.
+
+## Hardy electron compatibility implemented
+
+Additive `electron_*` provenance is exposed by detector, CS and bin-first
+Product 2/3 readers. Optional detector/bin-first `E0_response_range_flag`
+retains signed integer codes (-1 unavailable, 0 within, 1 below, 2 above);
+CS exposes overlap fraction and any-flag. Lazy detector/CS access and older
+products remain supported. [[Reader Interfaces and Data Contract]] owns the
+field contract. Full suite 46 tests passes, including malformed-dimension
+rejection, optional fields, signed flags and backward compatibility.
+
+All four real 122-frame Hardy orbit 0085 detector/CS products loaded through
+`icreader.load()` and agreed with writer/math checks. Product schema versions
+remain unchanged because the metadata and fields are additive. This is reader
+compatibility, not scientific acceptance of Hardy energy or its conditional
+uncertainties. Existing project work remains; no commit or corpus change.
 
 ## Current position
 
@@ -40,9 +56,9 @@ the root NetCDF `product_type` attribute.
 - A temporary end-to-end check passed from the current footprint-enabled
   `icBuilder.BinnedImage` writer through `icreader.load()`; signal, coverage,
   method, and the reconstructed 46-by-46 WIC grid agreed.
-- `icreader.load()` now also dispatches schema-2 `fuv_detector`, schema-3
-  `precipitation_detector`, schema-2 `conductance_detector`, and schema-1
-  `precipitation_cs`/`conductance_cs` products.
+- `icreader.load()` now also dispatches schema-2 `fuv_detector`, schema-3/4
+  `precipitation_detector`, schema-2/3 `conductance_detector`, schema-1
+  `precipitation_cs`, and schema-1/2 `conductance_cs` products.
 - Detector-first three-dimensional fields are lazy `ProductField` proxies.
   Slicing or `read()` materializes only the requested variable selection;
   product objects are context-managed and close their NetCDF handle.
@@ -75,8 +91,19 @@ the root NetCDF `product_type` attribute.
 - The real orbit-0085 Gaussian diagnostic at WIC/SI13 sigmas 0.8/1.2 opens
   successfully and reads individual smoothed frames without loading the full
   cubes. A real 122-frame precipitation CS file also reads all three camera
-  fields and uncertainties. All 26 detector-first tests and all 36 repository
-  tests pass.
+  fields and uncertainties.
+- Schema-4 `precipitation_detector` implements the new optional fixed-Gaussian
+  contract. It requires the global request, effective WIC/SI12/SI13 widths,
+  per-sensor applied flags, smoothing/variance provenance, and geometric Tukey
+  propagation metadata. Only the combined `method_quality_weight` is required;
+  legacy schema-3 per-sensor weights remain optional when reading old files.
+  Optional smoothed fields now include SI12. Explicit dual-schema validation
+  allows old and new Product 2 files to be compared without silently assigning
+  schema-4 semantics to schema 3.
+- Schema-3 `conductance_detector` and schema-2 `conductance_cs` require and
+  expose the complete Product-2 count-source, smoothing, variance-propagation,
+  and Tukey-weight recipe. Their legacy schemas remain readable with explicit
+  unrecorded/unsmoothed fallbacks. All 39 tests under `tests/` pass.
 
 ## Preserved interfaces
 
@@ -86,10 +113,12 @@ modular dispatcher.
 
 ## Next action
 
-Commit and push the detector count-source and optional smoothing additions. Afterward, use
-`ConductanceCS` as the reader boundary when the 46-by-46 corpus is introduced
-to icAnalyzer. Reader support does not resolve the separate Hardy-clipping,
-low-signal validity, or E0--Fe covariance decisions in the source products.
+Compare the legacy schema-3 and new schema-4 Product 2 files, including
+`method_quality_weight`, regenerate Product 3 and its CS representation, then
+use `ConductanceCS` as the reader boundary when the 46-by-46 corpus is
+introduced to icAnalyzer. Reader support does not
+resolve the separate Hardy-clipping, low-signal validity, or E0--Fe covariance
+decisions in the source products.
 
 ## Known gaps
 

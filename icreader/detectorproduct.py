@@ -69,6 +69,10 @@ class DetectorProduct(NetCDFProduct):
         for name in self.REQUIRED_ATTRIBUTES:
             setattr(self, name, self.attrs[name])
 
+        for name, value in self.attrs.items():
+            if name.startswith("electron_"):
+                setattr(self, name, value)
+
         if self.attrs.get("proton_energy_model") == "constant":
             for name in (
                 "proton_energy_constant",
@@ -182,7 +186,7 @@ class FUVDetector(DetectorProduct):
 #%% Detector Product 2
 
 class PrecipitationDetector(DetectorProduct):
-    """Read schema-3 or schema-4 image-ratio precipitation on WIC pixels."""
+    """Read schema-3 or schema-4 precipitation on WIC pixels."""
 
     PRODUCT_TYPE = "precipitation_detector"
     SCHEMA_VERSION = 4
@@ -230,7 +234,7 @@ class PrecipitationDetector(DetectorProduct):
             "si13_smoothed", "dsi13_smoothed",
         ),
         IMAGE,
-    )
+    ) | variable_specs(("E0_response_range_flag",), IMAGE, "int")
 
     def _validate_descriptor(self):
         """Accept the explicit legacy and current detector Product-2 schemas."""
@@ -397,6 +401,7 @@ class ConductanceDetector(DetectorProduct):
         **variable_specs(_FLOAT_FIELDS, IMAGE),
         **variable_specs(_BOOL_FIELDS, IMAGE, "bool"),
     }
+    OPTIONAL_VARIABLES = variable_specs(("E0_response_range_flag",), IMAGE, "int")
 
     def _validate_descriptor(self):
         """Accept the legacy and current detector Product-3 schemas."""

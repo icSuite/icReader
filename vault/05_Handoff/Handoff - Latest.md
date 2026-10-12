@@ -1,8 +1,69 @@
 # Handoff - Latest
 
-Last updated: 2026-09-25
-Repository snapshot: `modular_pipeline` at `5fb8841` with uncommitted detector
-count-source additions
+Last updated: 2026-10-11
+Repository snapshot: `modular_pipeline` at `8f8e7d1`; reader/test/docs and
+pre-existing memory work are uncommitted.
+
+## Latest checkpoint: Hardy electron compatibility implemented
+
+Additive `electron_*` provenance is exposed by detector, CS and bin-first
+Product 2/3 readers. Optional detector/bin-first `E0_response_range_flag`
+retains signed integer codes (-1 unavailable, 0 within, 1 below, 2 above);
+CS exposes overlap fraction and any-flag. Lazy detector/CS access and older
+products remain supported. [[Reader Interfaces and Data Contract]] owns the
+field contract. Full suite 46 tests passes, including malformed-dimension
+rejection, optional fields, signed flags and backward compatibility.
+
+All four real 122-frame Hardy orbit 0085 detector/CS products loaded through
+`icreader.load()` and agreed with writer/math checks. Product schema versions
+remain unchanged because the metadata and fields are additive. This is reader
+compatibility, not scientific acceptance of Hardy energy or its conditional
+uncertainties. Existing project work remains; no commit or corpus change.
+
+## Portfolio impact
+
+- Central update needed: Yes
+- Reader now supports optional Hardy fields/provenance from icBuilder.
+- No priority/deadline change; scientific model acceptance remains separate.
+
+## Previous checkpoint: Product-2 preprocessing provenance reaches Product 3
+
+`icreader.ConductanceDetector` now accepts legacy schema 2 and current schema
+3; `icreader.ConductanceCS` accepts legacy schema 1 and current schema 2. The
+current schemas require and expose Product 2's count source, global smoothing
+request, method, three widths and applied flags, operation and variance rules,
+and Tukey-weight method, floor, and spatial propagation. This makes the
+carried `method_quality_weight` directly interpretable from Product 3 and its
+CS representation. Legacy files retain explicit unsmoothed/unrecorded
+fallbacks. All 39 tests under `tests/` pass.
+
+## Portfolio impact
+
+- Central update needed: No
+- This is a coordinated downstream schema/provenance correction and does not
+  change project priority or deadlines.
+
+## Previous checkpoint: schema-4 detector Product 2 supported explicitly
+
+`icreader.PrecipitationDetector` now accepts both legacy schema 3 and the new
+icBuilder schema 4. Schema 4 requires the global smoothing request, all three
+effective Gaussian widths and applied flags, variance provenance, and the
+geometric Tukey-weight propagation metadata. It requires `si12`/`dsi12` and
+the smoothed count/uncertainty pair for each sensor marked as smoothed. Only
+the combined `method_quality_weight` is required; legacy schema-3 individual
+sensor weights remain available as optional fields when present.
+
+The CS reader exposes the corresponding new metadata with backward-compatible
+fallbacks for existing schema-1 CS files. The old
+`spatial_smoothing_kernel` reader property remains as an alias of the current
+`smoothing_method` so existing consumers are not broken. All 37 reader tests
+pass.
+
+## Portfolio impact
+
+- Central update needed: No
+- This is a coordinated reader update for the icBuilder Product-2 schema and
+  preserves the old/new comparison boundary required by icAnalyzer work.
 
 ## Latest checkpoint: SI12 available in detector and CS precipitation
 

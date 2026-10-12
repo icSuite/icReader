@@ -1,6 +1,26 @@
 # Decision Log
 
-Last reviewed: 2026-08-11
+Last reviewed: 2026-10-01
+
+## 2026-10-01 — Read legacy and current detector Product 2 explicitly
+
+**Decision:** Accept both schema-3 and schema-4 `precipitation_detector`
+products through the same public reader, with schema-specific validation.
+Schema 4 requires the optional-Gaussian and Tukey-propagation contract; schema
+3 retains its legacy fields and defaults. Keep
+`spatial_smoothing_kernel` as a compatibility alias for the new
+`smoothing_method` property.
+
+**Rationale:** The immediate scientific task is a direct old/new Product-2
+comparison, and icAnalyzer depends on icReader. Explicit dual-schema support
+allows that comparison without silently interpreting old files according to
+new preprocessing semantics or breaking established consumer code.
+
+**Downstream amendment:** Accept detector Product-3 schemas 2/3 and
+Product-3-CS schemas 1/2 explicitly. Require the complete Product-2
+preprocessing and Tukey-weight provenance in the current schemas, since both
+products carry `method_quality_weight` and must remain interpretable without
+opening Product 2.
 
 ## 2026-08-11 — Dispatch modular products from explicit NetCDF metadata
 
