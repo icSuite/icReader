@@ -1,8 +1,16 @@
 # Current State
 
-Last reviewed: 2026-10-11 (Hardy additive compatibility)
-Repository snapshot: `modular_pipeline` at `8f8e7d1`; reader/test/docs and
-pre-existing memory work are uncommitted.
+Last reviewed: 2026-10-21 (independent CS products)
+Repository snapshot: `modular_pipeline` at `6a213cb`; the current reader and
+memory updates are uncommitted.
+
+## Independent conductance CS supported
+
+Schema-2 `conductance_cs` no longer requires a
+`companion_precipitation_cs` attribute. It remains self-contained and keeps
+its detector Product-3 and inherited upstream provenance. Existing files that
+carry the former companion attribute remain readable. All 46 tests under
+`tests/` pass.
 
 ## Hardy electron compatibility implemented
 

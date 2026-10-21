@@ -1,6 +1,6 @@
 # Reader Interfaces and Data Contract
 
-Last reviewed: 2026-10-11 (Hardy additive interface)
+Last reviewed: 2026-10-21 (independent CS products)
 
 This note records the current high-level interface visible in the live branch.
 It does not claim that all published files or downstream call sites were
@@ -119,6 +119,9 @@ propagation. Schema-2 `conductance_cs` carries the same metadata through the
 fixed-grid representation. The readers explicitly accept legacy detector
 Product-3 schema 2 and Product-3-CS schema 1 with unsmoothed/unrecorded
 fallbacks; they require the complete metadata in the current schemas.
+`conductance_cs` does not require a precipitation-CS companion path. Its
+detector Product-3 and inherited upstream source attributes remain provenance,
+not runtime dependencies.
 
 New `precipitation_cs` files carry the same `si12` and `dsi12` fields through
 the fixed-grid overlap reduction. The reader also exposes `count_source`,

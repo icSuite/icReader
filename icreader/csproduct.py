@@ -317,8 +317,8 @@ class ConductanceCS(CSProduct):
         "proton_operation_order", "count_uncertainty_mode",
         "count_uncertainty_method", "source_conductance_detector",
         "source_conductance_detector_sha256", "source_precipitation_detector",
-        "source_precipitation_detector_sha256", "companion_precipitation_cs",
-        "source_fuv_detector", "source_fuv_detector_sha256",
+        "source_precipitation_detector_sha256", "source_fuv_detector",
+        "source_fuv_detector_sha256",
     )
 
     _FLOAT_FIELDS = (

@@ -1,10 +1,22 @@
 # Handoff - Latest
 
-Last updated: 2026-10-11
-Repository snapshot: `modular_pipeline` at `8f8e7d1`; reader/test/docs and
-pre-existing memory work are uncommitted.
+Last updated: 2026-10-21
+Repository snapshot: `modular_pipeline` at `6a213cb`; the current reader and
+memory updates are uncommitted.
 
-## Latest checkpoint: Hardy electron compatibility implemented
+## Latest checkpoint: independent conductance CS
+
+Schema-2 `conductance_cs` no longer requires the former
+`companion_precipitation_cs` path. The product is read solely from its own
+content and detector Product-3 provenance; older files with the extra
+attribute remain compatible. All 46 tests under `tests/` pass.
+
+## Portfolio impact
+
+- Central update needed: No
+- This is a coordinated icBuilder/icReader contract simplification.
+
+## Previous checkpoint: Hardy electron compatibility implemented
 
 Additive `electron_*` provenance is exposed by detector, CS and bin-first
 Product 2/3 readers. Optional detector/bin-first `E0_response_range_flag`
