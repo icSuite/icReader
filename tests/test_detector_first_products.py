@@ -227,6 +227,78 @@ def write_product(filename, product_type, representation, schema, reader_class):
     return grid
 
 
+def write_fang_extensions(nc, reader_class, dimensions):
+    """Add the conditional Fang provenance and fields to Product 3."""
+
+    metadata = {
+        "fang_model_doi": "10.1029/2025JA033835",
+        "fang_energy_domain_keV": "1--20",
+        "fang_energy_definition": "Maxwellian average electron energy",
+        "fang_low_energy_policy": "clip",
+        "fang_magnetic_field_model": "IGRF13",
+        "fang_magnetic_field_package_version": "1.0.0",
+        "fang_magnetic_field_coefficients_sha256": "test-sha256",
+        "fang_magnetic_field_height_km": 150.0,
+        "fang_magnetic_field_epoch_policy": "each frame",
+        "fang_magnetic_field_coordinate_mapping": "Apex to 150 km",
+        "fang_magnetic_field_uncertainty_method": "not modelled",
+    }
+    nc.conductance_model = "fang"
+    for name, value in metadata.items():
+        nc.setncattr(name, value)
+
+    for name, (expected_dimensions, kind, _eager) in (
+        reader_class.OPTIONAL_VARIABLES.items()
+    ):
+        if not name.startswith("fang_"):
+            continue
+        assert expected_dimensions == dimensions
+        dtype = "i1" if kind == "bool" else "f4"
+        variable = nc.createVariable(name, dtype, dimensions)
+        variable[:] = 1
+        if kind == "float":
+            variable.units = "1"
+
+
+@pytest.mark.parametrize(
+    "product_type,representation,schema,reader_class,dimensions",
+    (
+        (
+            "conductance_detector", "detector", 3,
+            icreader.ConductanceDetector, ("time", "row", "column"),
+        ),
+        (
+            "conductance_cs", "cs", 2,
+            icreader.ConductanceCS, ("time", "dim1", "dim2"),
+        ),
+    ),
+)
+def test_fang_product3_fields_are_lazy_and_conditionally_required(
+    tmp_path, product_type, representation, schema, reader_class, dimensions
+):
+    filename = tmp_path / f"{product_type}_fang.nc"
+    write_product(filename, product_type, representation, schema, reader_class)
+    with Dataset(filename, "a") as nc:
+        write_smoothing_metadata(nc)
+        write_fang_extensions(nc, reader_class, dimensions)
+
+    with icreader.load(filename) as product:
+        assert product.conductance_model == "fang"
+        assert product.fang_low_energy_policy == "clip"
+        assert product.fang_evaluated_energy.shape == product.shape
+        if representation == "detector":
+            flag = product.fang_energy_clipped_low
+        else:
+            flag = product.fang_energy_clipped_low_any
+        assert flag.dtype == np.dtype(bool)
+        assert product.read(flag.name, 0).all()
+
+    with Dataset(filename, "a") as nc:
+        nc.renameVariable("fang_evaluated_energy", "removed_fang_energy")
+    with pytest.raises(ValueError, match="missing Fang variables"):
+        icreader.load(filename)
+
+
 @pytest.mark.parametrize(
     "product_type,representation,schema,reader_class", PRODUCT_CASES
 )

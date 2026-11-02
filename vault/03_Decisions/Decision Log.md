@@ -1,6 +1,16 @@
 # Decision Log
 
-Last reviewed: 2026-10-01
+Last reviewed: 2026-11-02
+
+## 2026-11-02 — Treat Fang as a conditional additive Product-3 contract
+
+**Decision:** Keep current Product-3 schema numbers. Expose Fang fields lazily
+when present, but require the complete Fang metadata and field group whenever
+`conductance_model=fang`. Preserve Robinson and legacy compatibility.
+
+**Rationale:** Fang is a selectable Product-3 calculation rather than a new
+representation. Conditional validation prevents partially described Fang
+files while avoiding an unnecessary schema break for existing consumers.
 
 ## 2026-10-01 — Read legacy and current detector Product 2 explicitly
 

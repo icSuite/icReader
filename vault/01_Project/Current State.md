@@ -1,8 +1,17 @@
 # Current State
 
-Last reviewed: 2026-10-21 (independent CS products)
+Last reviewed: 2026-11-02 (Fang Product-3 compatibility)
 Repository snapshot: `modular_pipeline` at `6a213cb`; the current reader and
 memory updates are uncommitted.
+
+## Fang Product 3 supported
+
+Schema-3 `conductance_detector` and schema-2 `conductance_cs` now expose the
+optional Fang (2025) detector/CS fields lazily. When `conductance_model=fang`,
+the reader conditionally requires the complete Fang provenance and field set,
+including the 150 km IGRF magnitude, evaluated energy, model-domain and
+sub-1-keV-floor diagnostics. Robinson files and older schemas remain
+unchanged. The full reader suite passes: 48 tests.
 
 ## Independent conductance CS supported
 

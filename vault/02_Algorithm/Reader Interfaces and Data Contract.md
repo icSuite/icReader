@@ -1,6 +1,6 @@
 # Reader Interfaces and Data Contract
 
-Last reviewed: 2026-10-21 (independent CS products)
+Last reviewed: 2026-11-02 (Fang Product-3 compatibility)
 
 This note records the current high-level interface visible in the live branch.
 It does not claim that all published files or downstream call sites were
@@ -54,9 +54,9 @@ The same dispatcher now recognizes five exact detector-first contracts:
 | --- | --- | ---: | --- |
 | `fuv_detector` | `detector` | 2 | `FUVDetector` |
 | `precipitation_detector` | `detector` | 3 and 4 | `PrecipitationDetector` |
-| `conductance_detector` | `detector` | 2 | `ConductanceDetector` |
+| `conductance_detector` | `detector` | 2 and 3 | `ConductanceDetector` |
 | `precipitation_cs` | `cs` | 1 | `PrecipitationCS` |
-| `conductance_cs` | `cs` | 1 | `ConductanceCS` |
+| `conductance_cs` | `cs` | 1 and 2 | `ConductanceCS` |
 
 These readers are context-managed because they retain an open NetCDF handle.
 One-dimensional time, source-index, frame-quality, Kp, and subsolar fields are
@@ -140,6 +140,19 @@ calculate or enforce a coordinate hash.
 The reader exposes stored central/uncertainty masks, coverage, contributor
 counts, clipping diagnostics, provenance, and physical fields without
 recalculating validity, precipitation, conductance, or spatial mapping.
+
+## Optional Fang Product-3 fields
+
+Current Product 3 may select `conductance_model=fang`. Schema-3 detector files
+then require Fang model/IGRF provenance and lazy cubes for the geographic
+150 km field-line footprints, IGRF magnitude, evaluated energy, original-domain
+membership, sub-1-keV flooring and uncertainty intervals crossing the 1 keV
+boundary. Schema-2 CS files retain overlap means of the field and evaluated
+energy plus area fractions and any-flags for the three diagnostics. These
+fields are conditional: Robinson and legacy files do not require them.
+
+The reader exposes serialized values and does not rerun the Apex mapping,
+IGRF, Fang equations, low-energy policy or uncertainty propagation.
 
 icBuilder now uses these detector and CS readers for Product-2/Product-3
 construction, paired CS reduction, and restart validation. Complete-orbit

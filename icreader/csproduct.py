@@ -340,7 +340,19 @@ class ConductanceCS(CSProduct):
     }
     OPTIONAL_VARIABLES = {
         **variable_specs(("E0_response_range_fraction",), IMAGE),
-        **variable_specs(("E0_response_range_any",), IMAGE, "bool")
+        **variable_specs(("E0_response_range_any",), IMAGE, "bool"),
+        **variable_specs((
+            "fang_magnetic_field_150km_microtesla",
+            "fang_evaluated_energy",
+            "fang_within_model_domain_fraction",
+            "fang_energy_clipped_low_fraction",
+            "fang_uncertainty_straddles_low_energy_boundary_fraction",
+        ), IMAGE),
+        **variable_specs((
+            "fang_within_model_domain_any",
+            "fang_energy_clipped_low_any",
+            "fang_uncertainty_straddles_low_energy_boundary_any",
+        ), IMAGE, "bool"),
     }
 
     def _validate_descriptor(self):
@@ -394,9 +406,54 @@ class ConductanceCS(CSProduct):
                 f"{self.PRODUCT_TYPE} is missing attributes: "
                 f"{', '.join(missing)}"
             )
+        if self._nc.conductance_model == "fang":
+            fang_attributes = (
+                "fang_model_doi", "fang_energy_domain_keV",
+                "fang_energy_definition",
+                "fang_low_energy_policy", "fang_magnetic_field_model",
+                "fang_magnetic_field_package_version",
+                "fang_magnetic_field_coefficients_sha256",
+                "fang_magnetic_field_height_km",
+                "fang_magnetic_field_epoch_policy",
+                "fang_magnetic_field_coordinate_mapping",
+                "fang_magnetic_field_uncertainty_method",
+            )
+            missing = [
+                name for name in fang_attributes
+                if name not in self._nc.ncattrs()
+            ]
+            if missing:
+                raise ValueError(
+                    f"{self.PRODUCT_TYPE} is missing Fang attributes: "
+                    f"{', '.join(missing)}"
+                )
+
+    def _validate_variables(self):
+        super()._validate_variables()
+        if self._nc.conductance_model != "fang":
+            return
+        required = (
+            "fang_magnetic_field_150km_microtesla",
+            "fang_evaluated_energy",
+            "fang_within_model_domain_fraction",
+            "fang_energy_clipped_low_fraction",
+            "fang_uncertainty_straddles_low_energy_boundary_fraction",
+            "fang_within_model_domain_any",
+            "fang_energy_clipped_low_any",
+            "fang_uncertainty_straddles_low_energy_boundary_any",
+        )
+        missing = [name for name in required if name not in self._nc.variables]
+        if missing:
+            raise ValueError(
+                f"{self.PRODUCT_TYPE} is missing Fang variables: "
+                f"{', '.join(missing)}"
+            )
 
     def _finish_initialization(self):
         super()._finish_initialization()
+        for name, value in self.attrs.items():
+            if name.startswith("fang_"):
+                setattr(self, name, value)
         self.count_source = self.attrs.get(
             "count_source", "background_subtracted"
         )

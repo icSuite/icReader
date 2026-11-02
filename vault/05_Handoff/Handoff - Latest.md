@@ -1,8 +1,24 @@
 # Handoff - Latest
 
-Last updated: 2026-10-21
+Last updated: 2026-11-02
 Repository snapshot: `modular_pipeline` at `6a213cb`; the current reader and
 memory updates are uncommitted.
+
+## Latest checkpoint: Fang Product-3 reader contract
+
+Current detector/CS Product 3 readers support `conductance_model=fang` as an
+additive contract. Fang metadata is public, detector and CS arrays remain
+lazy, and Fang files must contain their complete conditional metadata and
+field sets. The contract covers the 150 km IGRF field, evaluated energy,
+published-domain flags, operational low-energy-floor flags and uncertainty
+boundary diagnostics. Robinson and legacy files remain compatible. All 48
+reader tests pass.
+
+## Portfolio impact
+
+- Central update needed: No
+- This is coordinated icBuilder/icReader support for an already selected
+  optional conductance model; no priority or deadline changed.
 
 ## Latest checkpoint: independent conductance CS
 
