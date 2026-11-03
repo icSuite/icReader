@@ -11,7 +11,10 @@ additive contract. Fang metadata is public, detector and CS arrays remain
 lazy, and Fang files must contain their complete conditional metadata and
 field sets. The contract covers the 150 km IGRF field, evaluated energy,
 published-domain flags, operational low-energy-floor flags and uncertainty
-boundary diagnostics. Robinson and legacy files remain compatible. All 48
+boundary diagnostics. Product coordinates are converted to geographic at the
+130 km reference height, then IGRF is evaluated at 150 km at the same
+geographic latitude/longitude; this avoids an invalid field-line mapping for
+low-latitude pixels. Robinson and legacy files remain compatible. All 48
 reader tests pass.
 
 ## Portfolio impact

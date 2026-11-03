@@ -145,14 +145,18 @@ recalculating validity, precipitation, conductance, or spatial mapping.
 
 Current Product 3 may select `conductance_model=fang`. Schema-3 detector files
 then require Fang model/IGRF provenance and lazy cubes for the geographic
-150 km field-line footprints, IGRF magnitude, evaluated energy, original-domain
-membership, sub-1-keV flooring and uncertainty intervals crossing the 1 keV
-boundary. Schema-2 CS files retain overlap means of the field and evaluated
-energy plus area fractions and any-flags for the three diagnostics. These
-fields are conditional: Robinson and legacy files do not require them.
+footprints at the Product-2 reference height, 150 km IGRF magnitude, evaluated
+energy, original-domain membership, sub-1-keV flooring and uncertainty
+intervals crossing the 1 keV boundary. Schema-2 CS files retain overlap means
+of the field and evaluated energy plus area fractions and any-flags for the
+three diagnostics. These fields are conditional: Robinson and legacy files do
+not require them.
 
-The reader exposes serialized values and does not rerun the Apex mapping,
-IGRF, Fang equations, low-energy policy or uncertainty propagation.
+The reader exposes serialized values and does not rerun the coordinate
+conversion, IGRF, Fang equations, low-energy policy or uncertainty propagation.
+The writer converts Modified-Apex coordinates to geographic at the 130 km
+reference height, then evaluates IGRF at 150 km at the same geographic
+latitude/longitude without mapping along the field line.
 
 icBuilder now uses these detector and CS readers for Product-2/Product-3
 construction, paired CS reduction, and restart validation. Complete-orbit

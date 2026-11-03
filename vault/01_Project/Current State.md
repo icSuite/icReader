@@ -11,7 +11,10 @@ optional Fang (2025) detector/CS fields lazily. When `conductance_model=fang`,
 the reader conditionally requires the complete Fang provenance and field set,
 including the 150 km IGRF magnitude, evaluated energy, model-domain and
 sub-1-keV-floor diagnostics. Robinson files and older schemas remain
-unchanged. The full reader suite passes: 48 tests.
+unchanged. Product coordinates are converted from Modified Apex to geographic
+at the 130 km reference height; IGRF is then evaluated at 150 km at the same
+geographic latitude/longitude without field-line mapping. The full reader
+suite passes: 48 tests.
 
 ## Independent conductance CS supported
 

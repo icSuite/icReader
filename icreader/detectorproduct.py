@@ -404,8 +404,8 @@ class ConductanceDetector(DetectorProduct):
     OPTIONAL_VARIABLES = {
         **variable_specs(("E0_response_range_flag",), IMAGE, "int"),
         **variable_specs((
-            "fang_magnetic_latitude_150km",
-            "fang_magnetic_longitude_150km",
+            "fang_geographic_latitude_at_reference_height",
+            "fang_geographic_longitude_at_reference_height",
             "fang_magnetic_field_150km_microtesla",
             "fang_evaluated_energy",
         ), IMAGE),
@@ -494,8 +494,8 @@ class ConductanceDetector(DetectorProduct):
         if self._nc.conductance_model != "fang":
             return
         required = (
-            "fang_magnetic_latitude_150km",
-            "fang_magnetic_longitude_150km",
+            "fang_geographic_latitude_at_reference_height",
+            "fang_geographic_longitude_at_reference_height",
             "fang_magnetic_field_150km_microtesla",
             "fang_evaluated_energy",
             "fang_within_model_domain",

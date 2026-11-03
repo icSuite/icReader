@@ -6,7 +6,10 @@ Last reviewed: 2026-11-02
 
 **Decision:** Keep current Product-3 schema numbers. Expose Fang fields lazily
 when present, but require the complete Fang metadata and field group whenever
-`conductance_model=fang`. Preserve Robinson and legacy compatibility.
+`conductance_model=fang`. Preserve Robinson and legacy compatibility. Convert
+the Product-2 Modified-Apex coordinates to geographic at 130 km, then evaluate
+IGRF at 150 km at that geographic latitude/longitude without field-line
+mapping.
 
 **Rationale:** Fang is a selectable Product-3 calculation rather than a new
 representation. Conditional validation prevents partially described Fang
