@@ -6,10 +6,11 @@ Last reviewed: 2026-11-02
 
 **Decision:** Keep current Product-3 schema numbers. Expose Fang fields lazily
 when present, but require the complete Fang metadata and field group whenever
-`conductance_model=fang`. Preserve Robinson and legacy compatibility. Convert
-the Product-2 Modified-Apex coordinates to geographic at 130 km, then evaluate
+`conductance_model=fang`. Preserve Robinson and legacy compatibility. Use
+Product 2's stored geographic coordinates at 130 km directly, then evaluate
 IGRF at 150 km at that geographic latitude/longitude without field-line
-mapping.
+mapping or a redundant Apex conversion. Use ApexPy's compiled IGRF magnitude
+evaluation and retain its package/coefficient provenance.
 
 **Rationale:** Fang is a selectable Product-3 calculation rather than a new
 representation. Conditional validation prevents partially described Fang

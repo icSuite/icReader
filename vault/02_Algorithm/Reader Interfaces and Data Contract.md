@@ -154,9 +154,11 @@ not require them.
 
 The reader exposes serialized values and does not rerun the coordinate
 conversion, IGRF, Fang equations, low-energy policy or uncertainty propagation.
-The writer converts Modified-Apex coordinates to geographic at the 130 km
-reference height, then evaluates IGRF at 150 km at the same geographic
-latitude/longitude without mapping along the field line.
+The writer uses Product 2's stored geographic coordinates at the 130 km
+reference height directly, then evaluates IGRF at 150 km at the same
+geographic latitude/longitude without mapping along the field line. The
+writer uses ApexPy's compiled IGRF magnitude evaluator and serializes the
+package version and coefficient-file hash.
 
 icBuilder now uses these detector and CS readers for Product-2/Product-3
 construction, paired CS reduction, and restart validation. Complete-orbit

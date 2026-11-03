@@ -11,11 +11,13 @@ additive contract. Fang metadata is public, detector and CS arrays remain
 lazy, and Fang files must contain their complete conditional metadata and
 field sets. The contract covers the 150 km IGRF field, evaluated energy,
 published-domain flags, operational low-energy-floor flags and uncertainty
-boundary diagnostics. Product coordinates are converted to geographic at the
-130 km reference height, then IGRF is evaluated at 150 km at the same
-geographic latitude/longitude; this avoids an invalid field-line mapping for
-low-latitude pixels. Robinson and legacy files remain compatible. All 48
-reader tests pass.
+boundary diagnostics. The writer uses Product 2's stored geographic
+coordinates at the 130 km reference height, then evaluates IGRF at 150 km at
+the same geographic latitude/longitude. This avoids both field-line mapping
+failures and a redundant coordinate conversion. ApexPy's compiled IGRF
+magnitude evaluator supplies the field, with package version and coefficient
+hash retained. Robinson and legacy files remain compatible. All 48 reader
+tests pass.
 
 ## Portfolio impact
 
