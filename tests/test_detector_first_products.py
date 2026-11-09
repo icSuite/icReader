@@ -519,7 +519,7 @@ def test_current_conductance_products_expose_product2_preprocessing(
         assert product.smoothing_operation_order == "before proton correction"
 
 
-def test_precipitation_cs_loads_optional_si12_fields(tmp_path):
+def test_precipitation_cs_loads_optional_camera_fields(tmp_path):
     filename = tmp_path / "precipitation_cs.nc"
     write_product(
         filename,
@@ -530,6 +530,7 @@ def test_precipitation_cs_loads_optional_si12_fields(tmp_path):
     )
     with icreader.load(filename) as product:
         assert not hasattr(product, "si12")
+        assert not hasattr(product, "wic_smoothed")
         assert product.count_source == "background_subtracted"
         assert product.spatial_smoothing_kernel == "none"
 
@@ -539,7 +540,9 @@ def test_precipitation_cs_loads_optional_si12_fields(tmp_path):
         nc.wic_smoothing_width_pixels = 0.8
         nc.si13_smoothing_width_pixels = 1.2
         dimensions = ("time", "dim1", "dim2")
-        for name in ("si12", "dsi12"):
+        for name in (
+            "si12", "dsi12", "wic_smoothed", "dwic_smoothed"
+        ):
             variable = nc.createVariable(name, "f4", dimensions)
             variable[:] = 1
             variable.units = "counts"
@@ -547,6 +550,8 @@ def test_precipitation_cs_loads_optional_si12_fields(tmp_path):
     with icreader.load(filename) as product:
         assert product.si12.shape == product.shape
         assert product.dsi12.units == "counts"
+        assert product.wic_smoothed.shape == product.shape
+        assert product.dwic_smoothed.units == "counts"
         assert product.count_source == "unsubtracted"
         assert product.spatial_smoothing_kernel == "gaussian"
         assert product.wic_smoothing_width_pixels == 0.8

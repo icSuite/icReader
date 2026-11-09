@@ -251,7 +251,13 @@ class PrecipitationCS(CSProduct):
         **variable_specs(_BOOL_FIELDS, IMAGE, "bool"),
     }
     OPTIONAL_VARIABLES = {
-        **variable_specs(("si12", "dsi12", "E0_response_range_fraction"), IMAGE),
+        **variable_specs(
+            (
+                "si12", "dsi12", "wic_smoothed", "dwic_smoothed",
+                "E0_response_range_fraction",
+            ),
+            IMAGE,
+        ),
         **variable_specs(("E0_response_range_any",), IMAGE, "bool")
     }
 
