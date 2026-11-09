@@ -1,8 +1,17 @@
 # Current State
 
-Last reviewed: 2026-11-02 (Fang Product-3 compatibility)
-Repository snapshot: `modular_pipeline` at `6a213cb`; the current reader and
-memory updates are uncommitted.
+Last reviewed: 2026-11-09 (pre-proton WIC precipitation-CS support)
+Repository snapshot: `modular_pipeline` at `587c538`
+
+## Pre-proton WIC available from precipitation CS
+
+Schema-1 `precipitation_cs` may now expose lazy `wic_smoothed` and
+`dwic_smoothed` fields. They are the background-selected, spatially smoothed
+WIC counts and propagated measurement uncertainty before SI12 proton
+correction, reduced on the same Product-2 method support as corrected WIC.
+Their absence remains valid for older or unsmoothed CS products. All 48 reader
+tests pass. This enables the controlled corrected-versus-pre-proton WIC CVAE
+experiment without reopening detector Product 1.
 
 ## Fang Product 3 supported
 

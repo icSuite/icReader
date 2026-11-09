@@ -1,6 +1,6 @@
 # Reader Interfaces and Data Contract
 
-Last reviewed: 2026-11-02 (Fang Product-3 compatibility)
+Last reviewed: 2026-11-09 (pre-proton WIC precipitation-CS support)
 
 This note records the current high-level interface visible in the live branch.
 It does not claim that all published files or downstream call sites were
@@ -130,6 +130,15 @@ the fixed-grid overlap reduction. The reader also exposes `count_source`,
 Together with `wic_corrected` and `si13_corrected`, these provide the three
 camera fields requested by corrected-camera analysis without opening Product
 1. Corrected WIC must not receive the SI12 proton correction a second time.
+
+When detector Product 2 contains the pre-proton smoothing pair,
+`precipitation_cs` may additionally expose lazy `wic_smoothed` and
+`dwic_smoothed`. The CS writer reduces them on the same common method support
+as corrected WIC, using overlap-area means for counts and squared normalized
+overlap weights for measurement variance. They are additive schema-1 fields;
+absence remains valid. They must not be interpreted as electron-only counts or
+passed directly to electron-conductance conversion because proton emissions
+remain present.
 
 For CS products, `product.grid` is a reconstructed `secsy.CSgrid`. The reader
 uses the stored projection, radius, and explicit xi/eta edges together with

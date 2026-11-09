@@ -1,8 +1,20 @@
 # Handoff - Latest
 
-Last updated: 2026-11-02
-Repository snapshot: `modular_pipeline` at `6a213cb`; the current reader and
-memory updates are uncommitted.
+Last updated: 2026-11-09
+Repository snapshot: `modular_pipeline` at `587c538`
+
+## Latest checkpoint: pre-proton WIC reaches precipitation CS
+
+Commit `587c538` adds lazy optional `wic_smoothed` and `dwic_smoothed` to the
+schema-1 `precipitation_cs` reader contract. These fields remain pre-proton;
+`wic_corrected` remains unchanged. Older files without the additive pair still
+open. All 48 reader tests pass, including absence/presence round trips.
+
+## Portfolio impact
+
+- Central update needed: No
+- This is a coordinated reader boundary for an icAnalyzer diagnostic; no
+  project priority or deadline changed.
 
 ## Latest checkpoint: Fang Product-3 reader contract
 
