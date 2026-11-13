@@ -1,6 +1,6 @@
 # Reader Interfaces and Data Contract
 
-Last reviewed: 2026-11-09 (pre-proton WIC precipitation-CS support)
+Last reviewed: 2026-11-13 (source-file provenance removed)
 
 This note records the current high-level interface visible in the live branch.
 It does not claim that all published files or downstream call sites were
@@ -73,6 +73,11 @@ the context closes; reading array data after close remains an error.
 
 Detector geometry remains in its stored time-dependent `glat`, `glon`,
 `mlat`, `mlon`, and `mlt` fields. The reader does not regrid it.
+
+Source file paths, SHA-256 values, file sizes and modification times are not
+part of the detector or CS contracts. Newly generated products omit them;
+older products carrying these extra attributes remain readable. Scientific
+method metadata, source schema versions and time-decoding rules remain stored.
 
 Schema-2 `fuv_detector` products may contain the optional fields
 `wic_unsubtracted_counts`, `si12_unsubtracted_counts`,

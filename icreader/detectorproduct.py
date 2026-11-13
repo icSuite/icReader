@@ -115,8 +115,6 @@ class FUVDetector(DetectorProduct):
         "coregistration_max_roundtrip_error_km",
         "coregistration_minimum_coverage",
         "coregistration_overlap_operator_stored",
-        "source_wic", "source_si12", "source_si13",
-        "source_wic_sha256", "source_si12_sha256", "source_si13_sha256",
     )
 
     _FLOAT_FIELDS = (
@@ -175,14 +173,6 @@ class FUVDetector(DetectorProduct):
         ),
     }
 
-    def _finish_initialization(self):
-        super()._finish_initialization()
-        self.source_products = MappingProxyType({
-            sensor: self.attrs[f"source_{sensor}"]
-            for sensor in ("wic", "si12", "si13")
-        })
-
-
 #%% Detector Product 2
 
 class PrecipitationDetector(DetectorProduct):
@@ -196,8 +186,7 @@ class PrecipitationDetector(DetectorProduct):
         "proton_energy_uncertainty_method", "proton_energy_coordinate_note",
         "count_uncertainty_mode", "count_uncertainty_method",
         "proton_response_energy_min", "proton_response_energy_max",
-        "proton_operation_order", "source_fuv_detector",
-        "source_fuv_detector_sha256", "source_preprocessing_label",
+        "proton_operation_order", "source_preprocessing_label",
         "source_fuv_detector_time_decoding", "coordinate_system",
         "reference_height_km", "software_version",
     )
@@ -376,9 +365,7 @@ class ConductanceDetector(DetectorProduct):
         "proton_energy_uncertainty_method", "proton_energy_coordinate_note",
         "proton_response_energy_min", "proton_response_energy_max",
         "proton_operation_order", "count_uncertainty_mode",
-        "count_uncertainty_method", "source_precipitation_detector",
-        "source_precipitation_detector_sha256", "source_fuv_detector",
-        "source_fuv_detector_sha256", "source_preprocessing_label",
+        "count_uncertainty_method", "source_preprocessing_label",
         "source_fuv_detector_time_decoding", "coordinate_system",
         "reference_height_km", "software_version",
     )

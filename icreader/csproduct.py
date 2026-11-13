@@ -225,9 +225,7 @@ class PrecipitationCS(CSProduct):
         "proton_energy_uncertainty_method", "proton_energy_coordinate_note",
         "proton_response_energy_min", "proton_response_energy_max",
         "proton_operation_order", "count_uncertainty_mode",
-        "count_uncertainty_method", "source_precipitation_detector",
-        "source_precipitation_detector_sha256", "source_fuv_detector",
-        "source_fuv_detector_sha256",
+        "count_uncertainty_method",
     )
 
     _FLOAT_FIELDS = (
@@ -321,10 +319,7 @@ class ConductanceCS(CSProduct):
         "proton_energy_uncertainty_method", "proton_energy_coordinate_note",
         "proton_response_energy_min", "proton_response_energy_max",
         "proton_operation_order", "count_uncertainty_mode",
-        "count_uncertainty_method", "source_conductance_detector",
-        "source_conductance_detector_sha256", "source_precipitation_detector",
-        "source_precipitation_detector_sha256", "source_fuv_detector",
-        "source_fuv_detector_sha256",
+        "count_uncertainty_method",
     )
 
     _FLOAT_FIELDS = (

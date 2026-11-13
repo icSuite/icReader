@@ -1,7 +1,21 @@
 # Handoff - Latest
 
-Last updated: 2026-11-09
+Last updated: 2026-11-13
 Repository snapshot: `modular_pipeline` at `587c538`
+
+## Latest checkpoint: source-file provenance removed
+
+Detector and CS products no longer require or expose source paths, file
+checksums, sizes or modification times. icBuilder now writes the lean contract,
+while icReader continues to accept old files containing the extra attributes.
+Scientific method and schema metadata is unchanged. All 48 reader tests and 84
+focused icBuilder product tests pass.
+
+## Portfolio impact
+
+- Central update needed: No
+- This simplifies the internal icBuilder/icReader data contract without
+  changing scientific results, priorities or deadlines.
 
 ## Latest checkpoint: pre-proton WIC reaches precipitation CS
 

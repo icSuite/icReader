@@ -1,7 +1,15 @@
 # Current State
 
-Last reviewed: 2026-11-09 (pre-proton WIC precipitation-CS support)
+Last reviewed: 2026-11-13 (source-file provenance removed)
 Repository snapshot: `modular_pipeline` at `587c538`
+
+## Detector products no longer require source-file provenance
+
+The detector and CS readers no longer require source paths, SHA-256 values,
+file sizes, or modification times. Newly generated icBuilder products omit
+those attributes; older products carrying them remain readable. Scientific
+method metadata such as preprocessing labels, schema versions and time-decoding
+rules remains part of the contract. All 48 reader tests pass.
 
 ## Pre-proton WIC available from precipitation CS
 
